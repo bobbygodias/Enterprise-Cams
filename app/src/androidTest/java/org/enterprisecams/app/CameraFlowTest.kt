@@ -36,7 +36,12 @@ class CameraFlowTest {
             bitmap.recycle()
         }
         device.dumpWindowHierarchy(File(directory, "$name.xml"))
+        device.executeShellCommand("mkdir -p /sdcard/Download/enterprise-qa")
+        device.executeShellCommand("cp ${directory.absolutePath}/$name.png /sdcard/Download/enterprise-qa/$name.png")
+        device.executeShellCommand("cp ${directory.absolutePath}/$name.xml /sdcard/Download/enterprise-qa/$name.xml")
     }
+
+    @After fun captureFinalState() { capture("99-last-flow") }
 
     private fun fillCamera(name: String, provider: String) {
         rule.onNodeWithText("Adicionar câmera").performClick()
@@ -44,6 +49,7 @@ class CameraFlowTest {
         rule.onNodeWithText("Local (opcional)").performTextInput("Casa")
         rule.onNodeWithText(provider, useUnmergedTree = true).performScrollTo().performClick()
         rule.onNodeWithText("Continuar").performScrollTo().performClick()
+        rule.waitUntil(10_000) { rule.onAllNodesWithText("Concluí a configuração").fetchSemanticsNodes().isNotEmpty() }
     }
 
     @Test fun officialHandoffReturnSaveFavoriteEditAndRemove() {
@@ -71,7 +77,10 @@ class CameraFlowTest {
         rule.waitUntil(10_000) { rule.onAllNodesWithText("Entrada").fetchSemanticsNodes().isNotEmpty() }
         rule.onNodeWithText("Buscar câmera ou local").performTextInput("Não existe")
         rule.onNodeWithText("Nenhuma câmera neste filtro. Experimente outro nome ou local.").assertExists()
-        rule.onNodeWithContentDescription("Limpar busca").performClick()
+        rule.onNodeWithContentDescription("Limpar busca").performScrollTo().performClick()
+        androidx.test.espresso.Espresso.closeSoftKeyboard()
+        rule.onNodeWithText("Buscar câmera ou local").assert(hasText(""))
+        capture("03b-cleared-search")
         rule.onNode(hasScrollToNodeAction()).performScrollToNode(hasText("Entrada"))
         rule.onNodeWithContentDescription("Opções de Entrada").performClick()
         rule.onNodeWithText("Remover do painel").performClick()

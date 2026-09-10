@@ -21,6 +21,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -196,6 +197,7 @@ private fun HomeScreen(
     onFavorite: (CameraEntry) -> Unit, onEdit: (CameraEntry) -> Unit, onRemove: (CameraEntry) -> Unit,
 ) {
     var query by rememberSaveable { mutableStateOf("") }
+    val focusManager = LocalFocusManager.current
     var favorites by rememberSaveable { mutableStateOf(false) }
     var location by rememberSaveable { mutableStateOf("") }
     val locations = cameras.map { it.location }.filter { it.isNotBlank() }.distinct().sorted()
@@ -239,7 +241,7 @@ private fun HomeScreen(
             item {
                 OutlinedTextField(query, { query = it.take(HubCodec.MAX_TEXT) }, modifier = Modifier.fillMaxWidth(), singleLine = true,
                     label = { Text("Buscar câmera ou local") }, leadingIcon = { Icon(Icons.Default.Search, null) },
-                    trailingIcon = { if (query.isNotEmpty()) IconButton(onClick = { query = "" }) { Icon(Icons.Default.Close, "Limpar busca") } })
+                    trailingIcon = { if (query.isNotEmpty()) IconButton(onClick = { query = ""; focusManager.clearFocus() }) { Icon(Icons.Default.Close, "Limpar busca") } })
             }
             item {
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -319,6 +321,7 @@ private fun SetupScreen(draft: CameraDraft, apps: Map<String, AppAvailability>, 
             Text("Use um nome fácil de reconhecer, como Portão ou Garagem.", color = MaterialTheme.colorScheme.onSurfaceVariant)
             NameField(name, { name = it }, "Nome da câmera")
             NameField(location, { location = it }, "Local (opcional)")
+            IdentifyCameraApp(enabled = !busy, onIdentified = { providerId = it.id })
             Text("Aplicativo indicado no manual", style = MaterialTheme.typography.titleMedium)
             Providers.all.forEach { provider ->
                 Surface(shape = RoundedCornerShape(14.dp), color = if (providerId == provider.id) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,

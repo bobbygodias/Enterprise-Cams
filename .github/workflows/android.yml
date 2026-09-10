@@ -53,7 +53,7 @@ jobs:
           disable-animations: true
           script: |
             adb install -r qa-stub/build/outputs/apk/debug/qa-stub-debug.apk
-            gradle :app:connectedDebugAndroidTest --no-daemon --stacktrace; qa_result=$?; adb pull /sdcard/Android/data/org.enterprisecams.app/files/qa qa-evidence; adb logcat -d -b crash > crash-logcat.txt; exit "$qa_result"
+            gradle :app:connectedDebugAndroidTest --no-daemon --stacktrace; qa_result=$?; adb pull /sdcard/Download/enterprise-qa qa-evidence; adb logcat -d -b crash > crash-logcat.txt; exit "$qa_result"
       - name: Upload verification reports
         if: always()
         uses: actions/upload-artifact@v4
