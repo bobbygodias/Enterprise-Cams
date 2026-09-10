@@ -321,7 +321,7 @@ private fun SetupScreen(draft: CameraDraft, apps: Map<String, AppAvailability>, 
             Text("Use um nome fácil de reconhecer, como Portão ou Garagem.", color = MaterialTheme.colorScheme.onSurfaceVariant)
             NameField(name, { name = it }, "Nome da câmera")
             NameField(location, { location = it }, "Local (opcional)")
-            IdentifyCameraApp(enabled = !busy, onIdentified = { providerId = it.id })
+            IdentifyCameraApp(enabled = !busy, onIdentified = { providerId = it?.id.orEmpty() })
             Text("Aplicativo indicado no manual", style = MaterialTheme.typography.titleMedium)
             Providers.all.forEach { provider ->
                 Surface(shape = RoundedCornerShape(14.dp), color = if (providerId == provider.id) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
@@ -341,7 +341,7 @@ private fun SetupScreen(draft: CameraDraft, apps: Map<String, AppAvailability>, 
                 }
             }
             Button(onClick = { onContinue(CameraDraft(name.trim(), location.trim(), providerId, setupStarted = true)) },
-                enabled = name.isNotBlank() && !busy, modifier = Modifier.fillMaxWidth().heightIn(min = 54.dp)) { Text("Continuar") }
+                enabled = name.isNotBlank() && Providers.find(providerId) != null && !busy, modifier = Modifier.fillMaxWidth().heightIn(min = 54.dp)) { Text("Continuar") }
         } else {
             val provider = requireNotNull(Providers.find(draft.providerId))
             val availability = apps[provider.id] ?: AppAvailability.MISSING

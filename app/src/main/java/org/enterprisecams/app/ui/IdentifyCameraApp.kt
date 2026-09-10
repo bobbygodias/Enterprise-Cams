@@ -20,7 +20,7 @@ import org.enterprisecams.app.data.ProviderIdentifier
 import org.enterprisecams.app.platform.QrImageReader
 
 @Composable
-fun IdentifyCameraApp(enabled: Boolean, onIdentified: (CameraProvider) -> Unit) {
+fun IdentifyCameraApp(enabled: Boolean, onIdentified: (CameraProvider?) -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var input by remember { mutableStateOf("") }
@@ -29,6 +29,7 @@ fun IdentifyCameraApp(enabled: Boolean, onIdentified: (CameraProvider) -> Unit) 
     val accept: (String) -> Unit = { raw ->
         val provider = ProviderIdentifier.identify(raw)
         if (provider == null) {
+            onIdentified(null)
             message = "Não foi possível identificar o aplicativo. O QR pode conter só o número da câmera. Escolha abaixo o nome indicado no manual."
         } else {
             input = ""

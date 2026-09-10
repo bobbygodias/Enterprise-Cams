@@ -12,7 +12,7 @@ data class CameraProvider(val id: String, val name: String, val packageName: Str
 
 object Providers {
     // Identities verified against the publishers' Play listings on 2026-09-10.
-    // No vendor-specific device URI has yet been verified. Never fabricate one.
+    // Per-camera launches are not enabled. Identification never executes a scanned URI.
     val all = listOf(
         CameraProvider("yoosee", "Yoosee", "com.yoosee"),
         CameraProvider("icsee", "iCSee", "com.xm.csee"),
@@ -36,7 +36,7 @@ data class CameraEntry(
 data class CameraDraft(
     val name: String = "",
     val location: String = "",
-    val providerId: String = "yoosee",
+    val providerId: String = "",
     val setupStarted: Boolean = false,
 )
 
@@ -78,7 +78,7 @@ object HubCodec {
         state.draft?.let {
             checkText(it.name)
             checkText(it.location)
-            require(Providers.find(it.providerId) != null) { "Aplicativo de câmera desconhecido." }
+            require((!it.setupStarted && it.providerId.isEmpty()) || Providers.find(it.providerId) != null) { "Escolha o aplicativo da câmera." }
             if (it.setupStarted) checkText(it.name, required = true)
         }
     }

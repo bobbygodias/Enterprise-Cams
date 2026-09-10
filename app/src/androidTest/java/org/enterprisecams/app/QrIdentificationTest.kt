@@ -52,9 +52,11 @@ class QrIdentificationTest {
     }
     @Test fun serialOnlyQrHasAnHonestManualFallback() {
         rule.onNodeWithText("Adicionar câmera").performClick()
+        rule.onNodeWithText("Nome da câmera").performTextInput("Sala")
         rule.onNodeWithText("Link ou nome do aplicativo").performScrollTo().performTextInput("123456789")
         rule.onNodeWithText("Identificar aplicativo").performScrollTo().performClick()
         rule.onNodeWithText("Não foi possível identificar o aplicativo. O QR pode conter só o número da câmera. Escolha abaixo o nome indicado no manual.").assertExists()
         rule.onNodeWithText("Hilevel", useUnmergedTree = true).performScrollTo().assertExists()
+        rule.onNodeWithText("Continuar").performScrollTo().assertIsNotEnabled()
     }
 }

@@ -6,6 +6,15 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class ProviderIdentifierTest {
+    @Test fun newDraftRequiresAnIdentifiedOrExplicitlySelectedProvider() {
+        val state = org.enterprisecams.app.data.HubState(draft = org.enterprisecams.app.data.CameraDraft(name = "Portão"))
+        assertEquals("", state.draft!!.providerId)
+        org.enterprisecams.app.data.HubCodec.validate(state)
+        try {
+            org.enterprisecams.app.data.HubCodec.validate(state.copy(draft = state.draft.copy(setupStarted = true)))
+            fail("A setup without a provider must not continue")
+        } catch (_: IllegalArgumentException) { }
+    }
     @Test fun officialStoreLinksSelectEachExactPackage() {
         Providers.all.forEach { p ->
             assertEquals(p, ProviderIdentifier.identify(p.storeUrl))
