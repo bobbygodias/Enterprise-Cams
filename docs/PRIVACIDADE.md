@@ -2,7 +2,9 @@
 
 Enterprise Cams armazena, no espaço privado do aplicativo, nomes de câmeras, locais, aplicativo associado, favoritos e cadastro em andamento. Não solicita nem guarda login, senha, token, áudio ou vídeo das câmeras.
 
-O APK principal não declara permissão de internet, câmera, microfone, localização, armazenamento amplo, contatos, telefone, acessibilidade ou sobreposição. A biblioteca AndroidX pode declarar uma permissão interna com proteção por assinatura para receptores privados. Isso não dá acesso a dados de outros apps e não exige autorização do usuário.
+O APK principal não declara permissão de internet, microfone, localização, armazenamento amplo, contatos, telefone, acessibilidade ou sobreposição. A biblioteca AndroidX pode declarar uma permissão interna com proteção por assinatura para receptores privados. Isso não dá acesso a dados de outros apps e não exige autorização do usuário.
+
+A câmera é opcional e sua permissão é solicitada somente ao iniciar a leitura de QR. A leitura por imagem usa acesso apenas ao arquivo escolhido. As imagens e o conteúdo bruto do QR não são incluídos nos cadastros ou backups; a identificação ocorre localmente, sem enviar dados a servidores. Links desconhecidos não são abertos automaticamente.
 
 Não há conta Enterprise Cams, backend, telemetria, publicidade ou SDK de publicidade. O painel consulta somente os pacotes necessários à sua função. Exportação/importação usa o seletor de arquivos do Android, somente para o documento escolhido.
 

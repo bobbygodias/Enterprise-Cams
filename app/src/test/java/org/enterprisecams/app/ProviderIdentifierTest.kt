@@ -11,7 +11,7 @@ class ProviderIdentifierTest {
         assertEquals("", state.draft!!.providerId)
         org.enterprisecams.app.data.HubCodec.validate(state)
         try {
-            org.enterprisecams.app.data.HubCodec.validate(state.copy(draft = state.draft.copy(setupStarted = true)))
+            org.enterprisecams.app.data.HubCodec.validate(state.copy(draft = requireNotNull(state.draft).copy(setupStarted = true)))
             fail("A setup without a provider must not continue")
         } catch (_: IllegalArgumentException) { }
     }

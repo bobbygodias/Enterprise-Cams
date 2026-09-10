@@ -19,15 +19,30 @@ class QrIdentificationTest {
     @get:Rule val rule = createAndroidComposeRule<MainActivity>()
     @Before fun clearPanel() {
         runBlocking { CameraRepository(InstrumentationRegistry.getInstrumentation().targetContext).update { HubState() } }
-        rule.waitUntil(10_000) { rule.onAllNodesWithText("Adicionar câmera").fetchSemanticsNodes().isNotEmpty() }
+        rule.waitUntil(10_000) { rule.onAllNodesWithText("Suas câmeras, no mesmo lugar.").fetchSemanticsNodes().isNotEmpty() }
     }
     @Test fun qrPixelsDecodeOfflineToTheExactOfficialStoreApp() {
         val provider = requireNotNull(Providers.find("icsee"))
         val matrix = QRCodeWriter().encode(provider.storeUrl, BarcodeFormat.QR_CODE, 400, 400)
         val pixels = IntArray(400 * 400) { index -> if (matrix[index % 400, index / 400]) android.graphics.Color.BLACK else android.graphics.Color.WHITE }
         val bitmap = Bitmap.createBitmap(pixels, 400, 400, Bitmap.Config.ARGB_8888)
-        try { Assert.assertEquals(provider, ProviderIdentifier.identify(QrImageReader.decode(bitmap))) }
-        finally { bitmap.recycle() }
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val file = File(context.cacheDir, "qa-qr.png")
+        try {
+            file.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+            Assert.assertEquals(provider, ProviderIdentifier.identify(QrImageReader.read(context, android.net.Uri.fromFile(file))))
+        }
+        finally { bitmap.recycle(); file.delete() }
+    }
+    @Test fun liveReaderOpensOnDemandAndCancellationReturnsToSetup() {
+        val device = androidx.test.uiautomator.UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
+        rule.onNodeWithText("Adicionar câmera").performClick()
+        rule.onNodeWithText("Ler QR com a câmera").performScrollTo().performClick()
+        val permission = device.wait(androidx.test.uiautomator.Until.findObject(androidx.test.uiautomator.By.res("com.android.permissioncontroller", "permission_allow_foreground_only_button")), 3_000)
+        permission?.click()
+        Assert.assertTrue(device.wait(androidx.test.uiautomator.Until.hasObject(androidx.test.uiautomator.By.text("Aponte para o QR do manual ou da câmera")), 10_000))
+        device.pressBack()
+        rule.waitUntil(10_000) { rule.onAllNodesWithText("Leitura encerrada. Você pode usar uma imagem ou escolher o aplicativo abaixo.").fetchSemanticsNodes().isNotEmpty() }
     }
     @Test fun identificationRoutesMissingAppToInstallationAndKeepsDraft() {
         rule.onNodeWithText("Adicionar câmera").performClick()

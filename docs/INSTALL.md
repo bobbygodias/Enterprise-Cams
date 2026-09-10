@@ -8,8 +8,8 @@ Assinatura: **debug de testes**, gerada pelo ambiente de compilação; não é a
 1. Baixe o APK no Android e abra-o.
 2. Quando o Android solicitar, autorize a instalação pela origem usada para abrir o arquivo.
 3. Abra Enterprise Cams e toque em Adicionar câmera.
-4. Dê um nome, escolha o aplicativo indicado no manual e continue.
-5. Instale/abra o aplicativo oficial, configure a câmera e confirme que a imagem funciona nele.
+4. Dê um nome. Leia o QR pela câmera ou por uma imagem, informe o link/nome do aplicativo, ou escolha o aplicativo indicado no manual. Confira a seleção e continue.
+5. Se o aplicativo estiver ausente, toque em Instalar para ir à página oficial na Play Store. Instale/abra o aplicativo oficial, configure a câmera e confirme que a imagem funciona nele.
 6. Volte ao Enterprise Cams e toque em Concluí a configuração.
 
 O toque no cartão **abre o aplicativo oficial**. Nesta versão, escolha a câmera dentro dele. Não há vídeo ou controle PTZ dentro do Enterprise Cams.
@@ -29,3 +29,9 @@ A chave debug de uma compilação futura pode mudar. Se o Android recusar uma at
 Consulte o registro de continuidade no repositório para os resultados exatos. Testes de encaminhamento em emulador usam um simulador isolado; não comprovam integração por câmera com aplicativos oficiais ou câmeras físicas.
 
 O módulo `qa-stub` do repositório é exclusivo do emulador de testes e não deve ser instalado no telefone.
+
+## Identificação por QR
+
+A permissão de câmera só é solicitada ao usar o leitor ao vivo. Você pode recusá-la e usar uma imagem, colar o link ou selecionar o aplicativo. O reconhecimento é local e limitado ao catálogo confirmado: links da Play Store, nomes/pacotes exatos e alguns esquemas identificados nos aplicativos estudados. Um QR com apenas um serial ou um link não reconhecido exige escolha pelo manual; o painel não adivinha o fabricante e não abre esse link automaticamente.
+
+Os APKs enviados por Bobby serviram para estudo de funcionamento e interoperabilidade. Não são instaladores distribuídos pelo Enterprise Cams. O canal normal do aplicativo de câmera é a Play Store; exceções usam o canal oficial do fabricante.

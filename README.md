@@ -7,6 +7,7 @@ Um painel Android para encontrar suas câmeras pelo nome e pelo local, com encam
 ## O que esta versão faz
 
 - Organiza acessos por câmera/local, com busca, favoritos e edição.
+- Lê QR pela câmera ou por imagem e identifica aplicativos do catálogo por links/nomes conhecidos, com alternativa manual quando só há um serial.
 - Reconhece Yoosee, iCSee, V380, V380 Pro e Hilevel instalados no mesmo perfil Android.
 - Encaminha à Play Store; se a loja não abrir, tenta sua página HTTPS no navegador.
 - Orienta a configuração da câmera no aplicativo oficial e conserva o cadastro ao sair e voltar.

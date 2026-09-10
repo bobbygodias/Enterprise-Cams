@@ -25,7 +25,7 @@ class CameraFlowTest {
 
     @Before fun clearPanel() {
         runBlocking { CameraRepository(context).update { HubState() } }
-        rule.waitUntil(10_000) { rule.onAllNodesWithText("Adicionar câmera").fetchSemanticsNodes().isNotEmpty() }
+        rule.waitUntil(10_000) { rule.onAllNodesWithText("Suas câmeras, no mesmo lugar.").fetchSemanticsNodes().isNotEmpty() }
     }
 
     private fun capture(name: String) {
@@ -44,6 +44,7 @@ class CameraFlowTest {
     @After fun captureFinalState() { capture("99-last-flow") }
 
     private fun fillCamera(name: String, provider: String) {
+        rule.waitUntil(10_000) { rule.onAllNodesWithText("Suas câmeras, no mesmo lugar.").fetchSemanticsNodes().isNotEmpty() }
         rule.onNodeWithText("Adicionar câmera").performClick()
         rule.onNodeWithText("Nome da câmera").performTextInput(name)
         rule.onNodeWithText("Local (opcional)").performTextInput("Casa")
