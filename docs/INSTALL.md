@@ -1,5 +1,7 @@
 # Enterprise Cams 0.1.0 — APK de testes
 
+Prévia com QR: compilação e testes unitários aprovados; testes de tela ainda em execução no ponto de retomada. Consulte o workflow 34541251856 e o registro de continuidade.
+
 Arquivo: `Enterprise-Cams-0.1.0-debug.apk`.
 Pacote: `org.enterprisecams.app`.
 Android: 6.0 ou superior (API 23+).

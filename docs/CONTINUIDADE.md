@@ -22,7 +22,7 @@ A imagem fornecida foi localizada e utilizada apesar da mensagem automática de 
 
 ## Esclarecimentos de Bobby durante esta sessão
 
-Bobby reforçou que o painel deve identificar o aplicativo correspondente à câmera, inclusive pelo QR normalmente presente no manual/embalagem, e encaminhar à instalação quando ele estiver ausente. Os APKs anexados foram enviados **para estudar seu funcionamento e desenvolver a interoperabilidade do nosso aplicativo**. Para os usuários, a Play Store é o canal normal de instalação; existem raras exceções pelo fabricante. Não confundir os anexos de estudo com arquivos para distribuir ou instalar pelo painel.
+Bobby reforçou que o painel deve identificar o aplicativo correspondente à câmera, inclusive pelo QR normalmente presente no manual/embalagem, e encaminhar à instalação quando ele estiver ausente. Os APKs anexados foram enviados **para estudar seu funcionamento e desenvolver a interoperabilidade do nosso aplicativo**. Para os usuários, a Play Store é o canal normal de instalação; existem raras exceções pelo fabricante. Não confundir os anexos de estudo com arquivos para distribuir ou instalar pelo painel. Bobby esclareceu também que `yoosee-6-32-3_apkextractor_1yqur.zip` foi anexado por engano e é dispensável: o APK e o outro ZIP já bastam. Não solicitar seu reenvio nem mantê-lo como pendência.
 
 ## O que já foi implementado
 
@@ -69,7 +69,9 @@ No commit `6c01c87e6efa9dc2b23e1a6c1a557c1a0ff46dcc`, o [workflow 34538527656](h
 
 No primeiro ensaio instrumentado, os cenários de fonte ampliada a 150% e de aplicativo ausente/rascunho persistente passaram. O cenário completo avançou pelo lançamento do simulador, retorno, cadastro, favoritos, recriação e edição, mas falhou ao localizar o cartão após limpar a busca. A lista é preguiçosa e o teste passou a rolar até o cartão antes de tocá-lo. A coleta de capturas também foi corrigida para preservar evidências em caso de falha.
 
-A revisão com leitor QR está em compilação e testes. Aguardam-se os resultados de 22 testes unitários e sete cenários instrumentados, incluindo QR por imagem, leitor ao vivo, identificação, instalação e alternativa manual. Não declarar esses testes aprovados antes do relatório.
+Ponto de retomada solicitado por Bobby devido ao limite de uso da plataforma. A revisão com QR no commit `6e3d687375e942520beeb68f83a260e059615e11` passou na compilação debug/release, testes unitários e lint. Os sete cenários instrumentados ainda estavam em execução no fechamento. Consultar o [workflow 34541251856](https://github.com/bobbygodias/Enterprise-Cams/actions/runs/34541251856), job `103084238895`, antes de declarar os testes de tela aprovados. A compilação aprovada não equivale à validação completa no emulador ou em câmera real.
+
+Na rodada anterior ao QR, o teste da busca continuou falhando e houve uma falha de sincronização após cadastro com fonte ampliada. A revisão atual limpa o foco ao limpar a busca, aguarda transições do DataStore e conserva as capturas em Downloads para sobreviver à desinstalação automática do teste. Esses ajustes ainda precisam do resultado final acima.
 
 A inspeção do APK produzido confirma pacote `org.enterprisecams.app`, versão 0.1.0, minSdk 23 e targetSdk 35. A base anterior ao leitor QR não solicitava câmera. O leitor acrescenta CAMERA opcional, pedida somente no uso. A versão atual continua sem INTERNET, microfone e localização; conferir o manifest mesclado do APK final antes de afirmar seu conjunto exato de permissões. Sua permissão interna `DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` vem do AndroidX; não é acesso a dados do usuário.
 
@@ -93,7 +95,9 @@ Os arquivos dos fabricantes não foram alterados nem publicados no repositório 
 
 APK: `Enterprise-Cams-0.1.0-debug.apk`. Instalação e limites em [INSTALL.md](INSTALL.md).
 
-APK atualizado com QR ainda não entregue. Registrar tamanho, SHA-256 e commit da compilação aprovada antes da entrega.
+APK com QR gerado pelo workflow acima e entregue como **prévia de testes, com validação de telas pendente**. Tamanho: 14454642 bytes. SHA-256: `63f4bbf162a623d4c3eae85d29a431d58ebbcaf004ae8091e67568ade777a2fd`. Pacote `org.enterprisecams.app`, versão 0.1.0; estrutura de assinatura v2 presente. Não é release final.
+
+Permissões encontradas no manifest mesclado: `org.enterprisecams.app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`, `android.permission.CAMERA`. Não há INTERNET, microfone ou localização. CAMERA atende ao leitor QR opcional; VIBRATE, se listado, vem da biblioteca de leitura. A permissão interna AndroidX protege receptores do próprio aplicativo.
 
 Antes de desinstalar uma versão com cadastros, exportar o backup. A assinatura debug pode variar entre ambientes de compilação; uma atualização com assinatura diferente exige preservar os dados antes da desinstalação. Não prometer atualizações contínuas até definir a chave estável.
 

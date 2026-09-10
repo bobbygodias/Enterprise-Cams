@@ -2,7 +2,7 @@
 
 Um painel Android para encontrar suas câmeras pelo nome e pelo local, com encaminhamento ao aplicativo oficial de cada câmera.
 
-**Estado: primeira implementação v0.1.0, em validação.** O repositório começou com a licença CC0. O registro atualizado de testes e limites está em [CONTINUIDADE.md](docs/CONTINUIDADE.md).
+**Estado: v0.1.0 com identificação por QR compilada; validação das telas pendente.** O repositório começou com a licença CC0. O registro atualizado de testes e limites está em [CONTINUIDADE.md](docs/CONTINUIDADE.md).
 
 ## O que esta versão faz
 
