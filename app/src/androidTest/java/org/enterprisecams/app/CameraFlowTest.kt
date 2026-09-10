@@ -72,7 +72,7 @@ class CameraFlowTest {
         rule.onNodeWithText("Buscar câmera ou local").performTextInput("Não existe")
         rule.onNodeWithText("Nenhuma câmera neste filtro. Experimente outro nome ou local.").assertExists()
         rule.onNodeWithContentDescription("Limpar busca").performClick()
-        rule.waitUntil(10_000) { rule.onAllNodesWithContentDescription("Opções de Entrada").fetchSemanticsNodes().isNotEmpty() }
+        rule.onNode(hasScrollToNodeAction()).performScrollToNode(hasText("Entrada"))
         rule.onNodeWithContentDescription("Opções de Entrada").performClick()
         rule.onNodeWithText("Remover do painel").performClick()
         rule.onNodeWithText("Cancelar").performClick()
