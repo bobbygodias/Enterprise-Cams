@@ -1,6 +1,6 @@
 # Enterprise Cams — análise dos aplicativos recebidos
 
-Data: 10 de setembro de 2026. Escopo: identidade dos pacotes, manifest, entradas de navegação e componentes associados à distribuição. Análise estática dos arquivos fornecidos por Bobby. Não é auditoria completa de segurança, ensaio de tráfego ou teste com câmeras físicas. Nenhum APK de terceiro foi alterado nesta etapa. Bobby esclareceu expressamente: os anexos servem ao estudo de funcionamento para nosso projeto; os usuários obtêm normalmente o aplicativo oficial pela Play Store, com raras exceções pelo canal do fabricante.
+Atualização: 11 de setembro de 2026. Escopo: identidade dos pacotes, manifest, entradas de navegação e componentes associados à distribuição. Análise estática dos arquivos fornecidos por Bobby. Não é auditoria completa de segurança, ensaio de tráfego ou teste com câmeras físicas. Nenhum APK de terceiro foi alterado nesta etapa. Bobby esclareceu expressamente: os anexos servem ao estudo de funcionamento para nosso projeto; os usuários obtêm normalmente o aplicativo oficial pela Play Store, com raras exceções pelo canal do fabricante.
 
 ## Resultado prático
 
@@ -46,6 +46,18 @@ Activities internas de reprodução inspecionadas não estavam exportadas. Não 
 A busca dirigida nos DEX do APK original não encontrou os marcadores Pairip/LicenseCheck pesquisados. Ausência desses marcadores nessa busca não equivale à ausência de proteções, telemetria ou outros componentes.
 
 O ZIP rotulado como patched-source teve o SHA-256 confrontado com o arquivo SHA recebido, com correspondência. Isso confirma integridade do arquivo enviado, não qualidade dos patches, segurança, compilação ou funcionamento. Não houve integração desse código ao Enterprise Cams nem auditoria completa das diferenças.
+
+## XMEye 1.6.2.46 — anexo recebido em 11/09
+
+Identidade confirmada no manifest e nos recursos do APK: **XMEye**, pacote `com.mobile.myeye`, versão `1.6.2.46`, código `16246`, minSdk 21, targetSdk 30. Contém dois DEX e bibliotecas `arm64-v8a` e `armeabi`. Essa versão do arquivo não deve ser tratada como a versão atual da loja. A [página oficial do XMEye na Play Store](https://play.google.com/store/apps/details?id=com.mobile.myeye) foi consultada em 11/09 e confirma o pacote e o nome.
+
+A entrada principal é `com.mobile.myeye.activity.welcome.view.WelcomeActivity`. No manifest examinado, há filtros para `xm.intent.action.Push` com `customscheme://com.mobile.myeye/notify_detail` e ACTION_VIEW com `xgscheme://com.xg.push/notify_detail`.
+
+O método `WelcomeActivity.dealWithIntentData` trata a ação de notificação e, no ramo ACTION_VIEW, exige o parâmetro `action=xm.intent.action.Push`. Lê `alarmSn`, `alarmId`, `alarmEvent` e `alarmTime`, monta `PushMsgBean` e encaminha ao processamento de notificações, ou conserva os dados no DataCenter. Isso demonstra um caminho de alarmes; não comprova abertura direta do vídeo ao vivo da câmera. Os filtros do Facebook no manifest atendem à integração de autenticação e não estabelecem um contrato de câmera.
+
+A busca dirigida nos DEX não encontrou as chaves `DESK_DEVICE_ID` e `addShortCut` do contrato identificado no iCSee. Não reutilizar o adaptador do iCSee por semelhança de fabricante. Ainda não houve teste dinâmico, verificação com conta/câmera nem inclusão do XMEye no catálogo do painel. Nenhum dado de autenticação foi extraído ou reutilizado.
+
+SHA-256 do APK completo recebido: `b416b519bc134e50225df5f26b63dd46e1e1330e95584f851e1b5e2f28c8767f`.
 
 ## V380 e V380 Pro
 

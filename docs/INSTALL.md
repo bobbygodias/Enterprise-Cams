@@ -1,6 +1,6 @@
 # Enterprise Cams 0.1.0 — APK de testes
 
-Prévia com QR: compilação e testes unitários aprovados. O workflow 34541251856 falhou ao compilar os testes de tela por ausência do Espresso. A dependência foi corrigida na retomada; a validação completa continua pendente. Bobby mostrou o painel funcionando com dois acessos no aparelho. Consulte o registro de continuidade para distinguir esse teste manual dos cenários ainda pendentes.
+Prévia com QR: compilação e testes unitários aprovados. O workflow 34541251856 falhou ao compilar os testes de tela por ausência do Espresso. A dependência foi corrigida e os sete testes de tela executaram na rodada seguinte: quatro passaram e três falharam. Os ajustes de sincronização e do controlador de permissões estão no workflow 34575358109, ainda sem resultado final conferido. A validação completa continua pendente. Bobby mostrou o painel funcionando com dois acessos no aparelho. Consulte o registro de continuidade para distinguir esse teste manual dos cenários ainda pendentes.
 
 Arquivo: `Enterprise-Cams-0.1.0-debug.apk`.
 Pacote: `org.enterprisecams.app`.

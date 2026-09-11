@@ -2,7 +2,7 @@
 
 Um painel Android para encontrar suas câmeras pelo nome e pelo local, com encaminhamento ao aplicativo oficial de cada câmera.
 
-**Estado: v0.1.0 com identificação por QR compilada; validação das telas pendente.** O repositório começou com a licença CC0. O registro atualizado de testes e limites está em [CONTINUIDADE.md](docs/CONTINUIDADE.md).
+**Estado: prévia Android 0.1.0 com QR compilada; 22 testes unitários aprovados. Na última rodada concluída, quatro de sete testes de tela passaram. As correções seguintes aguardam resultado final.** O repositório começou com a licença CC0. O registro atualizado de testes e limites está em [CONTINUIDADE.md](docs/CONTINUIDADE.md).
 
 ## O que esta versão faz
 
@@ -41,6 +41,9 @@ O workflow Android executa compilação, testes de dados, lint e testes instrume
 
 - [Briefing e continuidade](docs/CONTINUIDADE.md)
 - [Adaptadores e fontes](docs/INTEGRACOES.md)
+- [Análise dos APKs, incluindo XMEye](docs/ANALISE-APKS.md)
+- [Código em revisão — PR #1](https://github.com/bobbygodias/Enterprise-Cams/pull/1)
+- [Validação das correções](https://github.com/bobbygodias/Enterprise-Cams/actions/runs/34575358109)
 - [Escopo e evolução](docs/ESCOPO.md)
 - [Privacidade](docs/PRIVACIDADE.md)
 
