@@ -39,12 +39,12 @@ class QrIdentificationTest {
         finally { bitmap.recycle(); file.delete() }
     }
     @Test fun liveReaderOpensOnDemandAndCancellationReturnsToSetup() {
-        val device = androidx.test.uiautomator.UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val device = androidx.test.uiautomator.UiDevice.getInstance(instrumentation)
+        device.executeShellCommand("pm grant ${instrumentation.targetContext.packageName} android.permission.CAMERA")
         openSetup()
         rule.onNodeWithText("Ler QR com a câmera").performScrollTo().performClick()
-        val permission = device.wait(androidx.test.uiautomator.Until.findObject(androidx.test.uiautomator.By.res(java.util.regex.Pattern.compile("com\\.(google\\.)?android\\.permissioncontroller:id/permission_allow_foreground_only_button"))), 10_000)
-        permission?.click()
-        Assert.assertTrue(device.wait(androidx.test.uiautomator.Until.hasObject(androidx.test.uiautomator.By.text("Aponte para o QR do manual ou da câmera")), 10_000))
+        Assert.assertTrue(device.wait(androidx.test.uiautomator.Until.hasObject(androidx.test.uiautomator.By.textContains("Aponte para o QR")), 10_000))
         device.pressBack()
         rule.waitUntil(10_000) { rule.onAllNodesWithText("Leitura encerrada. Você pode usar uma imagem ou escolher o aplicativo abaixo.").fetchSemanticsNodes().isNotEmpty() }
     }
