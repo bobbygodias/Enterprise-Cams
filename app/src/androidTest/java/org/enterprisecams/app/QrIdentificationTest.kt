@@ -21,6 +21,10 @@ class QrIdentificationTest {
         runBlocking { CameraRepository(InstrumentationRegistry.getInstrumentation().targetContext).update { HubState() } }
         rule.waitUntil(10_000) { rule.onAllNodesWithText("Suas câmeras, no mesmo lugar.").fetchSemanticsNodes().isNotEmpty() }
     }
+    private fun openSetup() {
+        rule.onNodeWithText("Adicionar câmera").performScrollTo().performClick()
+        rule.waitUntil(10_000) { rule.onAllNodesWithText("Nome da câmera").fetchSemanticsNodes().isNotEmpty() }
+    }
     @Test fun qrPixelsDecodeOfflineToTheExactOfficialStoreApp() {
         val provider = requireNotNull(Providers.find("icsee"))
         val matrix = QRCodeWriter().encode(provider.storeUrl, BarcodeFormat.QR_CODE, 400, 400)
@@ -36,17 +40,17 @@ class QrIdentificationTest {
     }
     @Test fun liveReaderOpensOnDemandAndCancellationReturnsToSetup() {
         val device = androidx.test.uiautomator.UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
-        rule.onNodeWithText("Adicionar câmera").performClick()
+        openSetup()
         rule.onNodeWithText("Ler QR com a câmera").performScrollTo().performClick()
-        val permission = device.wait(androidx.test.uiautomator.Until.findObject(androidx.test.uiautomator.By.res("com.android.permissioncontroller", "permission_allow_foreground_only_button")), 3_000)
+        val permission = device.wait(androidx.test.uiautomator.Until.findObject(androidx.test.uiautomator.By.res(java.util.regex.Pattern.compile("com\\.(google\\.)?android\\.permissioncontroller:id/permission_allow_foreground_only_button"))), 10_000)
         permission?.click()
         Assert.assertTrue(device.wait(androidx.test.uiautomator.Until.hasObject(androidx.test.uiautomator.By.text("Aponte para o QR do manual ou da câmera")), 10_000))
         device.pressBack()
         rule.waitUntil(10_000) { rule.onAllNodesWithText("Leitura encerrada. Você pode usar uma imagem ou escolher o aplicativo abaixo.").fetchSemanticsNodes().isNotEmpty() }
     }
     @Test fun identificationRoutesMissingAppToInstallationAndKeepsDraft() {
-        rule.onNodeWithText("Adicionar câmera").performClick()
-        rule.onNodeWithText("Nome da câmera").performTextInput("Garagem")
+        openSetup()
+        rule.onNodeWithText("Nome da câmera").performScrollTo().performTextInput("Garagem")
         rule.onNodeWithText("Link ou nome do aplicativo").performScrollTo().performTextInput("https://play.google.com/store/apps/details?id=com.xm.csee")
         rule.onNodeWithText("Identificar aplicativo").performScrollTo().performClick()
         rule.onNodeWithText("Aplicativo identificado: iCSee. Confira a seleção abaixo e continue para instalar ou configurar.").assertExists()
@@ -66,8 +70,8 @@ class QrIdentificationTest {
         device.executeShellCommand("cp ${directory.absolutePath}/06-identified-install.png /sdcard/Download/enterprise-qa/06-identified-install.png")
     }
     @Test fun serialOnlyQrHasAnHonestManualFallback() {
-        rule.onNodeWithText("Adicionar câmera").performClick()
-        rule.onNodeWithText("Nome da câmera").performTextInput("Sala")
+        openSetup()
+        rule.onNodeWithText("Nome da câmera").performScrollTo().performTextInput("Sala")
         rule.onNodeWithText("Link ou nome do aplicativo").performScrollTo().performTextInput("123456789")
         rule.onNodeWithText("Identificar aplicativo").performScrollTo().performClick()
         rule.onNodeWithText("Não foi possível identificar o aplicativo. O QR pode conter só o número da câmera. Escolha abaixo o nome indicado no manual.").assertExists()

@@ -45,9 +45,10 @@ class CameraFlowTest {
 
     private fun fillCamera(name: String, provider: String) {
         rule.waitUntil(10_000) { rule.onAllNodesWithText("Suas câmeras, no mesmo lugar.").fetchSemanticsNodes().isNotEmpty() }
-        rule.onNodeWithText("Adicionar câmera").performClick()
-        rule.onNodeWithText("Nome da câmera").performTextInput(name)
-        rule.onNodeWithText("Local (opcional)").performTextInput("Casa")
+        rule.onNodeWithText("Adicionar câmera").performScrollTo().performClick()
+        rule.waitUntil(10_000) { rule.onAllNodesWithText("Nome da câmera").fetchSemanticsNodes().isNotEmpty() }
+        rule.onNodeWithText("Nome da câmera").performScrollTo().performTextInput(name)
+        rule.onNodeWithText("Local (opcional)").performScrollTo().performTextInput("Casa")
         rule.onNodeWithText(provider, useUnmergedTree = true).performScrollTo().performClick()
         rule.onNodeWithText("Continuar").performScrollTo().performClick()
         rule.waitUntil(10_000) { rule.onAllNodesWithText("Concluí a configuração").fetchSemanticsNodes().isNotEmpty() }
