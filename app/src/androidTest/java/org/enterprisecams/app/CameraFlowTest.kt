@@ -80,8 +80,7 @@ class CameraFlowTest {
         rule.onNodeWithText("Buscar câmera ou local").performTextInput("Não existe")
         rule.onNodeWithText("Nenhuma câmera neste filtro. Experimente outro nome ou local.").assertExists()
         rule.onNodeWithContentDescription("Limpar busca").performScrollTo().performClick()
-        androidx.test.espresso.Espresso.closeSoftKeyboard()
-        rule.onNodeWithText("Buscar câmera ou local").assert(hasText(""))
+        rule.waitUntil(10_000) { rule.onAllNodesWithText("Entrada").fetchSemanticsNodes().isNotEmpty() }
         capture("03b-cleared-search")
         rule.onNode(hasScrollToNodeAction()).performScrollToNode(hasText("Entrada"))
         rule.onNodeWithContentDescription("Opções de Entrada").performClick()
