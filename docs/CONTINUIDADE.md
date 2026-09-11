@@ -1,6 +1,6 @@
 # Enterprise Cams — continuidade da missão
 
-Atualizado em 10 de setembro de 2026. Bobby Dias & Andrew Vox.
+Atualizado em 11 de setembro de 2026. Bobby Dias & Andrew Vox.
 
 ## Leia isto primeiro
 
@@ -69,13 +69,13 @@ No commit `6c01c87e6efa9dc2b23e1a6c1a557c1a0ff46dcc`, o [workflow 34538527656](h
 
 No primeiro ensaio instrumentado, os cenários de fonte ampliada a 150% e de aplicativo ausente/rascunho persistente passaram. O cenário completo avançou pelo lançamento do simulador, retorno, cadastro, favoritos, recriação e edição, mas falhou ao localizar o cartão após limpar a busca. A lista é preguiçosa e o teste passou a rolar até o cartão antes de tocá-lo. A coleta de capturas também foi corrigida para preservar evidências em caso de falha.
 
-Ponto de retomada solicitado por Bobby devido ao limite de uso da plataforma. A revisão com QR no commit `6e3d687375e942520beeb68f83a260e059615e11` passou na compilação debug/release, testes unitários e lint. Os sete cenários instrumentados ainda estavam em execução no fechamento. Consultar o [workflow 34541251856](https://github.com/bobbygodias/Enterprise-Cams/actions/runs/34541251856), job `103084238895`, antes de declarar os testes de tela aprovados. A compilação aprovada não equivale à validação completa no emulador ou em câmera real.
+Ponto de retomada solicitado por Bobby devido ao limite de uso da plataforma. A revisão com QR no commit `6e3d687375e942520beeb68f83a260e059615e11` passou na compilação debug/release, testes unitários e lint. O resultado final do [workflow 34541251856](https://github.com/bobbygodias/Enterprise-Cams/actions/runs/34541251856), job `103084238895`, foi falha na compilação dos testes instrumentados: `CameraFlowTest.kt:82:32 Unresolved reference Espresso`. Os sete cenários não chegaram a executar nessa rodada. Na retomada de 11/09 foi declarada a dependência de teste `espresso-core:3.6.1`. O workflow também passou a montar o APK de testes antes de iniciar o emulador. Essa correção aguarda nova validação no CI. A compilação aprovada não equivale à validação completa no emulador ou em câmera real.
 
-Na rodada anterior ao QR, o teste da busca continuou falhando e houve uma falha de sincronização após cadastro com fonte ampliada. A revisão atual limpa o foco ao limpar a busca, aguarda transições do DataStore e conserva as capturas em Downloads para sobreviver à desinstalação automática do teste. Esses ajustes ainda precisam do resultado final acima.
+Na rodada anterior ao QR, o teste da busca continuou falhando e houve uma falha de sincronização após cadastro com fonte ampliada. A revisão atual limpa o foco ao limpar a busca, aguarda transições do DataStore e conserva as capturas em Downloads para sobreviver à desinstalação automática do teste. Esses ajustes continuam pendentes de validação após corrigir a compilação dos testes.
 
 A inspeção do APK produzido confirma pacote `org.enterprisecams.app`, versão 0.1.0, minSdk 23 e targetSdk 35. A base anterior ao leitor QR não solicitava câmera. O leitor acrescenta CAMERA opcional, pedida somente no uso. A versão atual continua sem INTERNET, microfone e localização; conferir o manifest mesclado do APK final antes de afirmar seu conjunto exato de permissões. Sua permissão interna `DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` vem do AndroidX; não é acesso a dados do usuário.
 
-Testes com simulador comprovam nosso fluxo Android. Não comprovam funcionamento de Yoosee/iCSee/Hilevel, login, imagem, PTZ ou seleção de câmera física. Não houve instalação no aparelho de Bobby nesta sessão.
+Testes com simulador comprovam nosso fluxo Android. Não comprovam funcionamento de Yoosee/iCSee/Hilevel, login, imagem, PTZ ou seleção de câmera física. Bobby posteriormente relatou o APK funcional no seu aparelho e enviou uma captura em 11/09, às 03:57. A captura mostra o painel renderizado em paisagem, dois acessos salvos — Lado externo/Yoosee e TowerCam/Hilevel —, busca, favoritos e o botão Adicionar câmera. Isso comprova a apresentação desses elementos nessa execução; não comprova persistência após reinício, leitura QR, instalação/retorno, vídeo ou abertura da câmera exata.
 
 ## Descobertas nos APKs novos
 
@@ -105,11 +105,19 @@ O envio direto à branch pública principal foi rejeitado pela revisão automát
 
 ## Próximos passos, em ordem
 
-1. Validar o painel no aparelho de Bobby quando for conveniente, com especial atenção à leitura, tamanho de fonte, teclado, instalação e retorno.
+1. Conferir o CI após a correção do Espresso e resolver eventuais falhas reais dos testes instrumentados. O painel já foi mostrado em funcionamento no aparelho de Bobby; ainda validar leitura QR, tamanho de fonte, teclado, instalação e retorno quando for conveniente.
 2. Validar a rota nativa de atalho do iCSee em aplicativo oficial completo e autenticado, usando duas câmeras distintas. Cobrir partida fria, aplicativo em segundo plano, serial inválido, atualização do app e retorno. Se confirmada, implementar adaptador específico com identificador local, confirmação da câmera correta e fallback explicado.
 3. Investigar contratos equivalentes no Yoosee, Hilevel, V380 e V380 Pro. Não inventar esquemas ou extras nem tentar abrir Activities não exportadas.
 4. Definir assinatura estável de release e distribuição independente, preservando baixo custo e aparelhos modestos.
 5. Evoluir a especificação mestra por módulos, mantendo o painel simples.
+
+## Retomada após interrupção — 11/09
+
+A cópia de trabalho anterior não estava disponível na retomada. O código foi recuperado do GitHub na branch `feat/android-launcher-v0.1`, commit `95a4f03393f58cfdc7d01961e3903120a5e2ed2c`. Não foi necessário refazer a análise dos APKs.
+
+O novo `pasted.txt` traz sugestões do Tutel-Duck para examinar intent-filters, Activities, extras e roteamento. A direção coincide com a análise registrada. Um esquema de URI, isoladamente, não estabelece abertura de uma câmera. A rota deve ser exportada, aceitar os dados esperados e respeitar a autenticação do aplicativo oficial. A rota concreta do iCSee permanece a candidata documentada; Yoosee e Hilevel ainda não têm contrato de abertura por câmera validado.
+
+O APK já entregue continua sendo o de SHA-256 registrado abaixo de Entrega e atualização. A correção da dependência é exclusiva dos testes e não constitui uma nova entrega de APK.
 
 ## Como retomar sem perder a missão
 
