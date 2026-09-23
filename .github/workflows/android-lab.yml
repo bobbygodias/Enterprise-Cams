@@ -1,0 +1,93 @@
+name: Android laboratory smoke
+
+on:
+  push:
+    branches: [lab/android-emulator-smoke]
+    paths: [.github/workflows/android-lab.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-lab-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  smoke:
+    if: github.repository == 'bobbygodias/Enterprise-Cams' && github.event.repository.private == false
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Prepare diagnostics and enable KVM
+        run: |
+          mkdir -p lab
+          exec > >(tee lab/host.txt) 2>&1
+          date -u
+          uname -a
+          echo "commit=$GITHUB_SHA run=$GITHUB_RUN_ID attempt=$GITHUB_RUN_ATTEMPT"
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          ls -l /dev/kvm
+          test -r /dev/kvm && test -w /dev/kvm
+          cat > /tmp/android-lab-probe.sh <<'PROBE'
+          #!/usr/bin/env bash
+          set -euo pipefail
+          exec > >(tee lab/probe.txt) 2>&1
+          trap 'timeout 20 adb -s emulator-5554 logcat -d -t 300 > lab/logcat.txt 2>&1 || true' EXIT
+          timeout 20 adb devices -l | tee lab/adb-devices.txt
+          timeout 20 adb -s emulator-5554 shell getprop sys.boot_completed | tr -d '\r' | tee lab/boot.txt
+          test "$(cat lab/boot.txt)" = 1
+          timeout 20 adb -s emulator-5554 shell getprop > lab/getprop.txt
+          timeout 20 adb -s emulator-5554 shell wm size | tee lab/wm-size.txt
+          timeout 20 adb -s emulator-5554 shell wm density | tee lab/wm-density.txt
+          timeout 20 adb -s emulator-5554 shell input keyevent KEYCODE_HOME
+          sleep 3
+          timeout 20 adb -s emulator-5554 exec-out screencap -p > lab/screenshot.png
+          test -s lab/getprop.txt
+          test -s lab/screenshot.png
+          file lab/screenshot.png | tee lab/screenshot-info.txt
+          grep -q 'PNG image data' lab/screenshot-info.txt
+          timeout 20 adb -s emulator-5554 logcat -d -t 300 > lab/logcat.txt
+          test -s lab/logcat.txt
+          trap - EXIT
+          echo 'PASS: boot, ADB, properties, display and screenshot collected.'
+          PROBE
+      - name: Boot Android and collect evidence
+        uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          ram-size: 2048M
+          cores: 2
+          disable-linux-hw-accel: false
+          emulator-boot-timeout: 600
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -accel on -verbose > /tmp/android-lab-emulator.log 2>&1
+          pre-emulator-launch-script: nohup timeout 900 adb -s emulator-5554 logcat -v threadtime > /tmp/android-lab-live-logcat.txt 2> /tmp/android-lab-adb.txt &
+          script: bash /tmp/android-lab-probe.sh
+      - name: Preserve diagnostics even after boot failure
+        if: always()
+        run: |
+          mkdir -p lab
+          cp /tmp/android-lab-emulator.log lab/emulator.log 2>/dev/null || true
+          cp /tmp/android-lab-adb.txt lab/adb-startup.txt 2>/dev/null || true
+          tail -n 500 /tmp/android-lab-live-logcat.txt > lab/boot-logcat.txt 2>/dev/null || true
+          timeout 15 adb devices -l > lab/adb-after-action.txt 2>&1 || true
+          if [ ! -s lab/logcat.txt ]; then
+            timeout 15 adb -s emulator-5554 logcat -d -t 300 > lab/logcat.txt 2>&1 || true
+          fi
+          if [ -f "$HOME/.android/avd/test.avd/config.ini" ]; then
+            cp "$HOME/.android/avd/test.avd/config.ini" lab/avd-config.ini
+          fi
+          (cd lab && sha256sum ./* > SHA256SUMS)
+      - name: Upload laboratory evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-lab-${{ github.run_id }}-${{ github.run_attempt }}
+          path: lab/
+          if-no-files-found: error
+          retention-days: 7
