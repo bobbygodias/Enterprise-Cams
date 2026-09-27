@@ -1,0 +1,164 @@
+{
+  "kind": "static_evidence_not_live_integration",
+  "source_zip_sha256": "3860b7cc1f938cbc4f2956923cba55ae65e4ca92591dd652ed1b5df2fbab7195",
+  "sources": {
+    "legacy_http": {
+      "archive_path": "yoosee_work/smali_classes11/com/libhttp/http/HttpService.smali",
+      "sha256": "2f0bf6d7c029dde6b18f7df3bb91a46f397f1f3c48bfe338088f20ce5169201d"
+    },
+    "iot_http": {
+      "archive_path": "yoosee_work/smali_classes18/com/tencentcs/iotvideo/accountmgr/HttpInterface.smali",
+      "sha256": "4978ded86da108a2c2fd891d91544afe9c42b706454af1bcee04c370e6e7c299"
+    },
+    "login_data": {
+      "archive_path": "yoosee_work/smali_classes11/com/libhttp/entity/LoginResult$DataBean.smali",
+      "sha256": "d7e1f7d78430a25436b88b5f3e81766621fb6ef364b04d567649d61d44f5d5de"
+    },
+    "login_handler": {
+      "archive_path": "yoosee_work/smali_classes15/m8/a.smali",
+      "sha256": "eba32fdb1a55b6a8e093afdde406acdee0515c76f4e8a6bec04c957f83fdc81d"
+    },
+    "iot_registration": {
+      "archive_path": "yoosee_work/smali_classes15/com/jwkj/c.smali",
+      "sha256": "31acb010b72020a3975d87e2013c78dfb4db3db0904b0577e36710220db94976"
+    },
+    "native_registration": {
+      "archive_path": "yoosee_work/smali_classes5/com/jwkj/iotvideo/init/IoTVideoInnerInitializer.smali",
+      "sha256": "2920206328d7d58dc7d2c472c4d9cbda710981ba65bbb1b88d5f4675f314a34e"
+    },
+    "request_signing": {
+      "archive_path": "yoosee_work/smali_classes18/com/tencentcs/iotvideo/http/interceptor/AddBaseParamsInterceptor.smali",
+      "sha256": "eb09aadca80466696ddf10807dae5d972b421ec767b1f75dde2cb3f523aa2775"
+    },
+    "signature_adapter": {
+      "archive_path": "yoosee_work/smali_classes7/ao/c.smali",
+      "sha256": "b8c423688985f93002b406f539d27f302f85ce7e857e65b23e12c3a2df728dd6"
+    }
+  },
+  "http_contracts": [
+    {
+      "source": "legacy_http",
+      "method": "getDeviceList",
+      "parameters": [
+        "Account"
+      ],
+      "routes": [
+        "Account/Bind/SearchBindDev.ashx"
+      ]
+    },
+    {
+      "source": "legacy_http",
+      "method": "login",
+      "parameters": [
+        "User",
+        "Pwd",
+        "VersionFlag",
+        "SessionID2",
+        "AnonymousId"
+      ],
+      "routes": [
+        "Users/LoginCheck.ashx"
+      ]
+    },
+    {
+      "source": "legacy_http",
+      "method": "login",
+      "parameters": [
+        "AppVersion",
+        "AppOS",
+        "AppName",
+        "Language",
+        "User",
+        "Pwd",
+        "VersionFlag",
+        "DomainList"
+      ],
+      "routes": [
+        "Users/LoginCheck.ashx"
+      ]
+    },
+    {
+      "source": "iot_http",
+      "method": "accountLogin",
+      "parameters": [],
+      "routes": [
+        "/openapi/app/user/login/account"
+      ]
+    },
+    {
+      "source": "iot_http",
+      "method": "deviceBind",
+      "parameters": [],
+      "routes": [
+        "/openapi/app/user/device/bind"
+      ]
+    },
+    {
+      "source": "iot_http",
+      "method": "deviceList",
+      "parameters": [
+        "lastDeviceId"
+      ],
+      "routes": [
+        "/openapi/app/user/device/listDevice"
+      ]
+    },
+    {
+      "source": "iot_http",
+      "method": "getAccessToken",
+      "parameters": [
+        "uniqueId"
+      ],
+      "routes": [
+        "/openapi/app/user/reGenUsrAcceccToken"
+      ]
+    },
+    {
+      "source": "iot_http",
+      "method": "getConfigNetToken",
+      "parameters": [],
+      "routes": [
+        "/openapi/netcfg/cloud/netcfg/genbindtoken"
+      ]
+    }
+  ],
+  "flow_markers": {
+    "login_handler_reads_access_id": true,
+    "login_handler_reads_access_token": true,
+    "registration_reads_account_q": true,
+    "registration_reads_account_r": true,
+    "registration_calls_iot_register": true,
+    "registration_sets_account_access_info": true,
+    "native_registration_present": true,
+    "signed_requests_use_account_token": true,
+    "signature_delegates_to_p2p_algorithm": true
+  },
+  "login_response_fields": [
+    "accessId",
+    "accessToken",
+    "area",
+    "expireTime",
+    "firstLogin",
+    "headUrl",
+    "nick",
+    "sessionId",
+    "sessionId2",
+    "terminalId",
+    "unionIdToken",
+    "userId",
+    "vcode1",
+    "vcode2"
+  ],
+  "original_apk": {
+    "sha256": "3b8021b351df0dea14827d71e66c1fb5a0f631f7cdfb70a597505e3600ef5d98",
+    "dex_string_presence": {
+      "Users/LoginCheck.ashx": true,
+      "/openapi/app/user/login/account": true,
+      "/openapi/app/user/device/listDevice": true,
+      "/openapi/app/user/reGenUsrAcceccToken": true,
+      "Lcom/jwkj/iotvideo/init/IoTVideoInnerInitializer;": true,
+      "sha1WithBase256": true
+    },
+    "limitation": "String presence does not verify execution or source equivalence."
+  }
+}

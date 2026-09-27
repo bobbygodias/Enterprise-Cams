@@ -85,6 +85,29 @@ git switch feat/cloud-aggregation-contract
 
 ## Referências técnicas
 
+## Avanço após a hipótese de Bobby — autenticação Yoosee
+
+Bobby propôs que o cadastro da câmera libera credenciais e que os endereços de integração estão no APK. A investigação estática da fonte Yoosee enviada confirmou parcialmente esse caminho: existem rotas de login, vinculação, inventário e renovação de token. Isso não demonstra que uma credencial do firmware, sozinha, autorize nosso aplicativo.
+
+| Evidência na fonte enviada | Resultado observado |
+| --- | --- |
+| `com.libhttp.http.HttpService.login` | Rota `Users/LoginCheck.ashx`, com parâmetros de conta e sessão. |
+| `LoginResult.DataBean` | Campos `accessId`, `accessToken`, `expireTime`, região e sessão. Nenhum valor real de usuário foi usado. |
+| `m8.a.a` | Copia o identificador e o token da resposta de login para os campos `q` e `r` da conta ativa. |
+| `com.jwkj.c.g` | Lê esses campos e chama `IoTVideoInitializer.register` e `AccountMgr.setAccessInfo`. |
+| `HttpInterface` | Declara `/openapi/app/user/device/listDevice` e `/openapi/app/user/reGenUsrAcceccToken`, além de rotas distintas para vinculação. |
+| `AddBaseParamsInterceptor` e `ao.c` | A assinatura de requisições usa o token da conta e delega uma operação a `IP2PAlgorithm.sha1WithBase256`. |
+
+A fonte examinada é o ZIP fornecido como `enterprise-patched-source`. O script próprio `tools/inspect_yoosee_auth.py` reproduz o inventário sem fazer rede, sem extrair arquivos e sem imprimir valores de chaves ou corpos de métodos. O relatório `docs/YOOSEE-AUTH-EVIDENCE-2026-09-27.json` registra hashes, nomes e presença de marcadores no DEX do APK original enviado. Presença de strings no APK não comprova equivalência integral com a fonte modificada nem execução bem-sucedida.
+
+Próximo passo preciso: verificar como autenticar a conta existente pelo fluxo correto, obter a sessão e acoplar uma implementação compatível de assinatura/P2P/player ao Enterprise Cams. Não começar vinculando novamente a câmera e não copiar a sessão privada do aplicativo oficial. Não presumir que basta conhecer a URL, nem afirmar que a ausência de um SDK novo já prove impossibilidade. Ainda faltam uma execução autenticada e reprodução real; nenhum token de usuário foi obtido nesta sessão.
+
+## Publicação confirmada
+
+A publicação pelo conector GitHub foi concluída e conferida. PR de trabalho: https://github.com/bobbygodias/Enterprise-Cams/pull/2, em rascunho. O primeiro commit remoto é `d2c5f47a9cdfd68be9076cd62434bb05f5c6a413`; os achados posteriores de autenticação são acrescentados na mesma branch. A principal permanece sem essas alterações. O PR contém documentação, ícone e ferramenta de inspeção própria; não contém APKs, SDKs, código descompilado ou credenciais de fabricantes.
+
+## Referências técnicas consultadas
+
 - Android, incorporação entre aplicativos e adesão exigida do aplicativo hospedado: https://developer.android.com/develop/ui/views/layout/activity-embedding#cross-app_embedding
 - Exemplo de integração Android FunSDK do fornecedor: https://github.com/jlinklab/jlink-funsdk-android-demo
 - Repositório Gwell/GWTimes, útil como referência de integração; o SDK ali documentado é para iOS e não constitui um SDK Android entregue: https://github.com/GWTimes/GWP2PSDK
