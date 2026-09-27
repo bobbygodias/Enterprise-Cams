@@ -48,6 +48,12 @@ fun CameraViewerScreen(camera: CameraEntry) {
     var linkForm by remember(camera.id) { mutableStateOf(false) }
     var hls by remember(camera.id) { mutableStateOf(true) }
     var attempt by remember(camera.id) { mutableIntStateOf(0) }
+    val scroll = rememberScrollState()
+    LaunchedEffect(source, demo, attempt) {
+        // A SurfaceView entirely clipped above a scroller may never render its first frame.
+        // Bring the video into view when the action is triggered from the buttons below it.
+        if (demo || source != null) scroll.scrollTo(0)
+    }
     val owner = LocalLifecycleOwner.current
     var foreground by remember(owner) { mutableStateOf(owner.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) }
     DisposableEffect(owner) {
@@ -58,7 +64,7 @@ fun CameraViewerScreen(camera: CameraEntry) {
         onDispose { owner.lifecycle.removeObserver(observer) }
     }
 
-    Column(Modifier.fillMaxSize().widthIn(max = 900.dp).verticalScroll(rememberScrollState())
+    Column(Modifier.fillMaxSize().widthIn(max = 900.dp).verticalScroll(scroll)
         .imePadding().padding(20.dp), verticalArrangement = Arrangement.spacedBy(18.dp)) {
         Text(camera.name, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
         Text(listOf(camera.location, providerName).filter(String::isNotBlank).joinToString(" · "),
@@ -144,7 +150,7 @@ private fun InternalVideoPlayer(source: HttpsVideoLink?, hls: Boolean, demo: Boo
     var failure by remember { mutableStateOf<String?>(null) }
     var playing by remember { mutableStateOf(false) }
     var muted by remember { mutableStateOf(true) }
-    val player = remember {
+    val exoPlayer = remember {
         // Library exception traces may include signed media URLs. Never emit them.
         Log.setLogLevel(Log.LOG_LEVEL_OFF)
         val factory = if (demo) DefaultDataSource.Factory(context) else HttpsOnlyDataSource.factory()
@@ -155,7 +161,7 @@ private fun InternalVideoPlayer(source: HttpsVideoLink?, hls: Boolean, demo: Boo
             repeatMode = if (demo) Player.REPEAT_MODE_ONE else Player.REPEAT_MODE_OFF
         }
     }
-    DisposableEffect(player) {
+    DisposableEffect(exoPlayer) {
         val listener = object : Player.Listener {
             override fun onRenderedFirstFrame() { firstFrame = true }
             override fun onIsPlayingChanged(isPlaying: Boolean) { playing = isPlaying }
@@ -170,21 +176,21 @@ private fun InternalVideoPlayer(source: HttpsVideoLink?, hls: Boolean, demo: Boo
                 }
             }
         }
-        player.addListener(listener)
+        exoPlayer.addListener(listener)
         val uri = if (demo) Uri.parse("android.resource://${context.packageName}/${R.raw.player_check}")
             else Uri.parse(requireNotNull(source).value)
-        player.setMediaItem(MediaItem.Builder().setUri(uri)
+        exoPlayer.setMediaItem(MediaItem.Builder().setUri(uri)
             .setMimeType(if (!demo && hls) MimeTypes.APPLICATION_M3U8 else MimeTypes.VIDEO_MP4).build())
-        player.prepare()
-        player.playWhenReady = true
+        exoPlayer.prepare()
+        exoPlayer.playWhenReady = true
         onDispose {
-            player.removeListener(listener)
-            player.release()
+            exoPlayer.removeListener(listener)
+            exoPlayer.release()
         }
     }
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Box(Modifier.fillMaxWidth().aspectRatio(16f / 9f).background(Color.Black), contentAlignment = Alignment.Center) {
-            AndroidView(factory = { PlayerView(it).apply { this.player = player; useController = false } },
+            AndroidView(factory = { PlayerView(it).apply { this.player = exoPlayer; useController = false } },
                 update = { it.keepScreenOn = playing }, modifier = Modifier.fillMaxSize())
             if (buffering) CircularProgressIndicator()
         }
@@ -197,9 +203,9 @@ private fun InternalVideoPlayer(source: HttpsVideoLink?, hls: Boolean, demo: Boo
         }, color = if (failure == null) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.error)
         if (failure != null) Button(onClick = onRetry, modifier = Modifier.heightIn(min = 52.dp)) { Text("Tentar novamente") }
         else Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            Button(onClick = { if (player.isPlaying) player.pause() else player.play() },
+            Button(onClick = { if (exoPlayer.isPlaying) exoPlayer.pause() else exoPlayer.play() },
                 modifier = Modifier.weight(1f).heightIn(min = 52.dp)) { Text(if (playing) "Pausar" else "Reproduzir") }
-            OutlinedButton(onClick = { muted = !muted; player.volume = if (muted) 0f else 1f },
+            OutlinedButton(onClick = { muted = !muted; exoPlayer.volume = if (muted) 0f else 1f },
                 modifier = Modifier.weight(1f).heightIn(min = 52.dp)) { Text(if (muted) "Ativar som" else "Silenciar") }
         }
     }

@@ -17,6 +17,7 @@ import java.io.File
 @RunWith(AndroidJUnit4::class)
 class CameraFlowTest {
     @get:Rule val rule = createAndroidComposeRule<MainActivity>()
+    @get:Rule val testName = org.junit.rules.TestName()
     private val instrumentation get() = InstrumentationRegistry.getInstrumentation()
     private val context: Context get() = instrumentation.targetContext
     private val device get() = UiDevice.getInstance(instrumentation)
@@ -39,7 +40,7 @@ class CameraFlowTest {
         device.executeShellCommand("cp ${directory.absolutePath}/$name.xml /sdcard/Download/enterprise-qa/$name.xml")
     }
 
-    @After fun captureFinalState() { capture("99-last-flow") }
+    @After fun captureFinalState() { capture("99-${testName.methodName}") }
 
     private fun fillCamera(name: String, provider: String) {
         rule.waitUntil(10_000) { rule.onAllNodesWithText("Suas câmeras, no mesmo lugar.").fetchSemanticsNodes().isNotEmpty() }
