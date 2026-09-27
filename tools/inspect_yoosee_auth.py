@@ -45,6 +45,9 @@ def inspect(source_zip, original_apk=None):
         "native_registration": ("com/jwkj/iotvideo/init/IoTVideoInnerInitializer.smali", {"register", "nativeRegister"}),
         "request_signing": ("com/tencentcs/iotvideo/http/interceptor/AddBaseParamsInterceptor.smali", {"addSignatureHeader"}),
         "signature_adapter": ("smali_classes7/ao/c.smali", {"sha1WithBase256"}),
+        "iot_constants": ("smali_classes19/com/tencentcs/iotvideo/utils/Constants.smali", set()),
+        "legacy_paths": ("smali_classes11/com/libhttp/http/ServicePath.smali", set()),
+        "p2p_registration": ("smali_classes15/com/jwkj/GSdkInitor$registerGSdk$1.smali", set()),
     }
     result = {"kind": "static_evidence_not_live_integration", "source_zip_sha256": digest(source_zip),
               "sources": {}, "http_contracts": [], "flow_markers": {}}
@@ -67,6 +70,15 @@ def inspect(source_zip, original_apk=None):
                     })
     result["login_response_fields"] = re.findall(
         r"(?m)^\.field private ([A-Za-z0-9_]+):", contents["login_data"])
+    hosts = set()
+    for label in ("iot_constants", "legacy_paths", "p2p_registration"):
+        for value in re.findall(r'https?://([^"\s|]+)', contents[label]):
+            host = value.split("/", 1)[0]
+            if "cloudlinks" in host or "cloud-links" in host:
+                hosts.add(host)
+        for host in re.findall(r"(?:p2p\d+\.(?:cloudlinks\.cn|cloud-links\.net))", contents[label]):
+            hosts.add(host)
+    result["observed_cloud_hosts"] = sorted(hosts)
     # Presence in selected methods is evidence to inspect, not execution proof.
     checks = {
         "login_handler_reads_access_id": ("login_handler", "a", "LoginResult$DataBean;->getAccessId()"),

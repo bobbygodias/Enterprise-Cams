@@ -83,8 +83,6 @@ cd Enterprise-Cams
 git switch feat/cloud-aggregation-contract
 ```
 
-## Referências técnicas
-
 ## Avanço após a hipótese de Bobby — autenticação Yoosee
 
 Bobby propôs que o cadastro da câmera libera credenciais e que os endereços de integração estão no APK. A investigação estática da fonte Yoosee enviada confirmou parcialmente esse caminho: existem rotas de login, vinculação, inventário e renovação de token. Isso não demonstra que uma credencial do firmware, sozinha, autorize nosso aplicativo.
@@ -98,9 +96,11 @@ Bobby propôs que o cadastro da câmera libera credenciais e que os endereços d
 | `HttpInterface` | Declara `/openapi/app/user/device/listDevice` e `/openapi/app/user/reGenUsrAcceccToken`, além de rotas distintas para vinculação. |
 | `AddBaseParamsInterceptor` e `ao.c` | A assinatura de requisições usa o token da conta e delega uma operação a `IP2PAlgorithm.sha1WithBase256`. |
 
+O mapa de infraestrutura também ficou claro na fonte: `HttpServiceAdapter` inicia a API IoT em `https://openapi-iot.cloudlinks.cn`; `Constants` separa o host de reprodução `https://saas-playback.cloudlinks.cn/`; a camada histórica lista `api1.cloudlinks.cn` até `api4.cloud-links.net`; e o registro do GSDK carrega hosts P2P `p2p1` a `p2p10` da infraestrutura Cloud Links. Esses nomes são endpoints observados no código fornecido, não autorização para acessá-los nem prova de que todos estejam ativos para cada região.
+
 A fonte examinada é o ZIP fornecido como `enterprise-patched-source`. O script próprio `tools/inspect_yoosee_auth.py` reproduz o inventário sem fazer rede, sem extrair arquivos e sem imprimir valores de chaves ou corpos de métodos. O relatório `docs/YOOSEE-AUTH-EVIDENCE-2026-09-27.json` registra hashes, nomes e presença de marcadores no DEX do APK original enviado. Presença de strings no APK não comprova equivalência integral com a fonte modificada nem execução bem-sucedida.
 
-Próximo passo preciso: verificar como autenticar a conta existente pelo fluxo correto, obter a sessão e acoplar uma implementação compatível de assinatura/P2P/player ao Enterprise Cams. Não começar vinculando novamente a câmera e não copiar a sessão privada do aplicativo oficial. Não presumir que basta conhecer a URL, nem afirmar que a ausência de um SDK novo já prove impossibilidade. Ainda faltam uma execução autenticada e reprodução real; nenhum token de usuário foi obtido nesta sessão.
+Próximo passo preciso: verificar como autenticar a conta existente pelo fluxo correto, obter a sessão e acoplar uma implementação compatível de assinatura/P2P/player ao Enterprise Cams. Não começar vinculando novamente a câmera e não copiar a sessão privada do aplicativo oficial. Não presumir que basta conhecer a URL, nem afirmar que a ausência de um SDK novo já prove impossibilidade. Ainda faltam uma execução autenticada e reprodução real; nenhum token de usuário foi obtido nesta sessão. A ferramenta e o relatório registram os hosts sem valores de credenciais ou chaves de cliente.
 
 ## Publicação confirmada
 

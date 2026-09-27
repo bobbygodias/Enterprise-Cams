@@ -33,6 +33,18 @@
     "signature_adapter": {
       "archive_path": "yoosee_work/smali_classes7/ao/c.smali",
       "sha256": "b8c423688985f93002b406f539d27f302f85ce7e857e65b23e12c3a2df728dd6"
+    },
+    "iot_constants": {
+      "archive_path": "yoosee_work/smali_classes19/com/tencentcs/iotvideo/utils/Constants.smali",
+      "sha256": "6f9badebf058414c64d52f5f2cb1ddc985f0af2ad1b5b205ad9d8ae24ba9441b"
+    },
+    "legacy_paths": {
+      "archive_path": "yoosee_work/smali_classes11/com/libhttp/http/ServicePath.smali",
+      "sha256": "1265b419abd663d85b3cd3adb99c012f254224f6caade5aaa6f649295490da42"
+    },
+    "p2p_registration": {
+      "archive_path": "yoosee_work/smali_classes15/com/jwkj/GSdkInitor$registerGSdk$1.smali",
+      "sha256": "31e43eee60d5b8ac47946e50dacf8435c7e30983f63c1ccfcfcfa40afb627a4e"
     }
   },
   "http_contracts": [
@@ -148,6 +160,34 @@
     "userId",
     "vcode1",
     "vcode2"
+  ],
+  "observed_cloud_hosts": [
+    "abroad-g.cloud-links.net",
+    "abroad.cloud-links.net",
+    "api1.cloudlinks.cn",
+    "api2.cloudlinks.cn",
+    "api3.cloud-links.net",
+    "api4.cloud-links.net",
+    "collect.cloud-links.net",
+    "customservicesystem-test.cloudlinks.cn",
+    "customservicesystem.cloudlinks.cn",
+    "openapi-iot.cloudlinks.cn",
+    "p2p1.cloudlinks.cn",
+    "p2p10.cloudlinks.cn",
+    "p2p2.cloudlinks.cn",
+    "p2p3.cloud-links.net",
+    "p2p4.cloud-links.net",
+    "p2p5.cloudlinks.cn",
+    "p2p6.cloudlinks.cn",
+    "p2p7.cloudlinks.cn",
+    "p2p8.cloudlinks.cn",
+    "p2p9.cloudlinks.cn",
+    "saas-playback.cloudlinks.cn",
+    "test-abroad-thirdLogin.cloud-links.net",
+    "test-openapi-iot.cloudlinks.cn",
+    "test-saas-playback.cloudlinks.cn",
+    "upg1.cloudlinks.cn",
+    "vasapi.cloudlinks.cn:10443"
   ],
   "original_apk": {
     "sha256": "3b8021b351df0dea14827d71e66c1fb5a0f631f7cdfb70a597505e3600ef5d98",
