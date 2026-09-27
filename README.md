@@ -1,5 +1,7 @@
 # Enterprise Cams
 
+**Direção atual, confirmada em 27/09/2026:** agregador com visualização e controles internos, preservando contas, nuvens e assinaturas dos fabricantes. A renovação continua no aplicativo oficial. A base 0.1.0 descrita abaixo ainda é um launcher e **não cumpre essa integração**. Veja [contrato atual e bloqueio técnico](docs/AGREGADOR-CLOUD-2026-09-27.md). O novo emblema circular foi aplicado nas fontes desta branch; isso não constitui uma nova versão funcional.
+
 Um painel Android para encontrar suas câmeras pelo nome e pelo local, com encaminhamento ao aplicativo oficial de cada câmera.
 
 **Estado: prévia Android 0.1.0 com QR compilada; 22 testes unitários aprovados. Na última rodada concluída, cinco de sete testes de tela passaram; duas falhas eram do próprio teste/automação e receberam correções focadas. A validação atual está em execução.** O repositório começou com a licença CC0. O registro atualizado de testes e limites está em [CONTINUIDADE.md](docs/CONTINUIDADE.md).

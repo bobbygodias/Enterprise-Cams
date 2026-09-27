@@ -1,5 +1,13 @@
 # Enterprise Cams — continuidade da missão
 
+## Atualização prioritária — 27/09/2026
+
+A orientação atual está em [AGREGADOR-CLOUD-2026-09-27.md](AGREGADOR-CLOUD-2026-09-27.md) e prevalece sobre o relato histórico abaixo. Bobby exige vídeo e controles dentro do Enterprise Cams, mantendo contas, nuvens, assinaturas e remuneração dos fabricantes. Compra/renovação no aplicativo oficial. ONVIF não pode substituir a integração se alterar essa relação.
+
+A base de `main` foi recuperada no commit `d146221`; o PR #1 já foi incorporado. O novo emblema circular foi aplicado na branch `feat/cloud-aggregation-contract`. A inspeção das quatro famílias de APKs não encontrou adesão à incorporação de Activities entre aplicativos. Ainda falta uma integração autenticada real. O experimento local de ONVIF foi isolado, não compilado e não aprovado como caminho principal. Não há um novo APK funcional para entregar.
+
+O restante deste documento descreve a etapa antiga do launcher e não deve ser tomado como requisito de conclusão atual.
+
 Atualizado em 11 de setembro de 2026. Bobby Dias & Andrew Vox.
 
 ## Leia isto primeiro
