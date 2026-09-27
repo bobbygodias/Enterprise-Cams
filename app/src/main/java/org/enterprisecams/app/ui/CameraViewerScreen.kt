@@ -135,7 +135,7 @@ private fun VideoLinkDialog(onDismiss: () -> Unit, onPlay: (HttpsVideoLink, Bool
     }, dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } })
 }
 
-@androidx.annotation.OptIn(UnstableApi::class)
+@androidx.annotation.OptIn(markerClass = [UnstableApi::class])
 @Composable
 private fun InternalVideoPlayer(source: HttpsVideoLink?, hls: Boolean, demo: Boolean, onRetry: () -> Unit) {
     val context = LocalContext.current
