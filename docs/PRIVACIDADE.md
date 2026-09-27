@@ -1,15 +1,13 @@
-# Privacidade da primeira versão
+# Privacidade — prévia 0.2.0
 
-Enterprise Cams armazena, no espaço privado do aplicativo, nomes de câmeras, locais, aplicativo associado, favoritos e cadastro em andamento. Não solicita nem guarda login, senha, token, áudio ou vídeo das câmeras.
+O Enterprise guarda nomes, locais, fabricante e favoritos no armazenamento privado do Android. Não cria conta própria, não contém anúncios ou telemetria e não solicita credenciais de nuvem nesta prévia.
 
-O APK principal não declara permissão de internet, microfone, localização, armazenamento amplo, contatos, telefone, acessibilidade ou sobreposição. A biblioteca AndroidX pode declarar uma permissão interna com proteção por assinatura para receptores privados. Isso não dá acesso a dados de outros apps e não exige autorização do usuário.
+O backup JSON, exportado por escolha do usuário, contém esses cadastros. Não contém vídeos, senhas ou links de transmissão. Não é criptografado; escolha um local privado. A importação acrescenta dados sem substituir os existentes.
 
-A câmera é opcional e sua permissão é solicitada somente ao iniciar a leitura de QR. A leitura por imagem usa acesso apenas ao arquivo escolhido. As imagens e o conteúdo bruto do QR não são incluídos nos cadastros ou backups; a identificação ocorre localmente, sem enviar dados a servidores. Links desconhecidos não são abertos automaticamente.
+O teste de vídeo incluído funciona offline. Se o usuário escolher reproduzir um link HTTPS autorizado, o Enterprise acessa esse endereço e os recursos HTTPS referenciados pelo vídeo, como playlists e segmentos. O servidor de origem recebe a solicitação e o IP, conforme o serviço contratado. A reprodução não passa por um servidor Enterprise.
 
-Não há conta Enterprise Cams, backend, telemetria, publicidade ou SDK de publicidade. O painel consulta somente os pacotes necessários à sua função. Exportação/importação usa o seletor de arquivos do Android, somente para o documento escolhido.
+Links ficam somente em memória durante a tela de reprodução, sem DataStore, estado salvo, backup ou cache de vídeo em disco. Logs de Media3 são desativados para evitar exposição de endereços assinados. Links expiram conforme o serviço que os emitiu; a prévia não renova tokens nem assinaturas.
 
-Backup exportado é JSON legível e sem criptografia: contém nomes e locais. A interface avisa disso antes da exportação. Nenhuma senha ou gravação é incluída. Backup automático de nuvem/transferência está excluído; o backup manual fica sob controle do usuário.
+Permissões próprias: INTERNET para links de vídeo e CAMERA opcional para ler QR. O reconhecimento do QR é local e não executa a URL lida. Acesso à câmera é solicitado apenas no leitor ao vivo. Não há localização, microfone ou gravação em segundo plano nesta implementação.
 
-Ao abrir um aplicativo oficial ou sua página de instalação, passam a valer o comportamento e as políticas desse aplicativo/site. O Enterprise Cams não remove anúncios, altera autenticação nem garante privacidade adicional ao software de terceiros.
-
-Não aceitar campos arbitrários de pacote, URI ou Intent no backup. Tamanho, versão do esquema, quantidade de registros, IDs e campos são validados antes de qualquer alteração persistente. Arquivo inválido não apaga o painel atual. Importação válida é aditiva, com tratamento de colisão de IDs.
+Contas, câmeras, gravações e assinaturas continuam sob responsabilidade dos fabricantes. A integração autenticada com essas nuvens ainda não foi implementada. Abrir/instalar o aplicativo oficial na configuração é uma escolha explícita; tocar no cartão da câmera mantém o usuário no Enterprise.

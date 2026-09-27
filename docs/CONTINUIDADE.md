@@ -1,5 +1,11 @@
 # Enterprise Cams — continuidade da missão
 
+## Prévia do visualizador interno — atualização posterior de 27/09/2026
+
+A branch agora contém a implementação 0.2.0-preview: tela interna por câmera, player Media3, clipe local de teste e reprodução temporária de links HTTPS autorizados; cadastro sem depender da instalação oficial. O CI foi acionado para compilar e verificar. **Não há integração autenticada com as nuvens nem teste com câmera física.** O relato abaixo sobre “apenas launcher” descreve o estado anterior desta sessão. O roteiro e os limites atuais estão em [PLAYER-TEST.md](PLAYER-TEST.md). Não presumir APK compilado ou testes aprovados sem conferir o workflow do commit.
+
+O login moderno examinado em `HttpServiceAdapter.getRequestBody` acrescenta `appId`/`appToken`, dados de versão/pacote/região; a assinatura anônima depende de uma interface do SDK. Portanto, mapear email/senha e `accessId`/`accessToken` não encerra a integração independente. Nenhum segredo de terceiros foi levado para o código próprio.
+
 ## Atualização prioritária — 27/09/2026
 
 A orientação atual está em [AGREGADOR-CLOUD-2026-09-27.md](AGREGADOR-CLOUD-2026-09-27.md) e prevalece sobre o relato histórico abaixo. Bobby exige vídeo e controles dentro do Enterprise Cams, mantendo contas, nuvens, assinaturas e remuneração dos fabricantes. Compra/renovação no aplicativo oficial. ONVIF não pode substituir a integração se alterar essa relação.

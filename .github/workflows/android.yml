@@ -25,19 +25,23 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.11.1'
-      - name: Build, unit tests and Android lint
-        run: gradle :app:testDebugUnitTest :app:lintDebug :app:assembleDebug :app:assembleRelease :app:assembleDebugAndroidTest :qa-stub:assembleDebug --no-daemon --stacktrace
+      - name: Build test APK and run unit tests
+        run: gradle :app:testDebugUnitTest :app:assembleDebug --no-daemon --stacktrace
       - name: Prepare installable test APK
         run: |
           mkdir -p delivery
-          cp app/build/outputs/apk/debug/app-debug.apk delivery/Enterprise-Cams-0.1.0-debug.apk
-          sha256sum delivery/Enterprise-Cams-0.1.0-debug.apk > delivery/SHA256SUMS.txt
+          cp app/build/outputs/apk/debug/app-debug.apk delivery/Enterprise-Cams-0.2.0-preview-debug.apk
+          sha256sum delivery/Enterprise-Cams-0.2.0-preview-debug.apk > delivery/SHA256SUMS.txt
           cp docs/INSTALL.md delivery/INSTALL.md
+          cp docs/PLAYER-TEST.md delivery/PLAYER-TEST.md
+          printf '%s\n' "$GITHUB_SHA" > delivery/COMMIT.txt
       - uses: actions/upload-artifact@v4
         with:
-          name: Enterprise-Cams-0.1.0-debug
+          name: Enterprise-Cams-0.2.0-preview-debug
           path: delivery/
           retention-days: 30
+      - name: Lint, release build and instrumentation compilation
+        run: gradle :app:lintDebug :app:assembleRelease :app:assembleDebugAndroidTest :qa-stub:assembleDebug --no-daemon --stacktrace
       - name: Enable emulator acceleration
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules

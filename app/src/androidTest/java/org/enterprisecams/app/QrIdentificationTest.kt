@@ -57,7 +57,7 @@ class QrIdentificationTest {
         rule.onNodeWithText("Continuar").performScrollTo().performClick()
         rule.waitUntil(10_000) { rule.onAllNodesWithText("Instalar iCSee").fetchSemanticsNodes().isNotEmpty() }
         rule.onNodeWithText("Instalar iCSee").performScrollTo().assertIsDisplayed()
-        rule.onNodeWithText("Concluí a configuração").performScrollTo().assertIsNotEnabled()
+        rule.onNodeWithText("Salvar câmera no painel").performScrollTo().assertIsEnabled()
         rule.activityRule.scenario.recreate()
         rule.waitUntil(10_000) { rule.onAllNodesWithText("Instalar iCSee").fetchSemanticsNodes().isNotEmpty() }
         val context = InstrumentationRegistry.getInstrumentation().targetContext

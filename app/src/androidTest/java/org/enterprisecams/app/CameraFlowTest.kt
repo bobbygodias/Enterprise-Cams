@@ -6,9 +6,7 @@ import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import androidx.test.uiautomator.By
 import androidx.test.uiautomator.UiDevice
-import androidx.test.uiautomator.Until
 import kotlinx.coroutines.runBlocking
 import org.enterprisecams.app.data.CameraRepository
 import org.enterprisecams.app.data.HubState
@@ -51,20 +49,30 @@ class CameraFlowTest {
         rule.onNodeWithText("Local (opcional)").performScrollTo().performTextInput("Casa")
         rule.onNodeWithText(provider, useUnmergedTree = true).performScrollTo().performClick()
         rule.onNodeWithText("Continuar").performScrollTo().performClick()
-        rule.waitUntil(10_000) { rule.onAllNodesWithText("Concluí a configuração").fetchSemanticsNodes().isNotEmpty() }
+        rule.waitUntil(10_000) { rule.onAllNodesWithText("Salvar câmera no painel").fetchSemanticsNodes().isNotEmpty() }
     }
 
-    @Test fun officialHandoffReturnSaveFavoriteEditAndRemove() {
+    @Test fun internalViewerPlaybackSaveFavoriteEditAndRemove() {
         capture("01-empty")
         fillCamera("Portão", "Yoosee")
         rule.onNodeWithText("Abrir Yoosee").performScrollTo().assertExists()
         capture("02-setup")
-        rule.onNodeWithText("Abrir Yoosee").performClick()
-        Assert.assertTrue("Fixture activity should receive the Android launch", device.wait(Until.hasObject(By.pkg("com.yoosee")), 8_000))
-        device.pressBack()
-        rule.waitUntil(10_000) { rule.onAllNodesWithText("Concluí a configuração").fetchSemanticsNodes().isNotEmpty() }
-        rule.onNodeWithText("Concluí a configuração").performScrollTo().performClick()
-        rule.waitUntil(10_000) { rule.onAllNodesWithText("Abrir no Yoosee").fetchSemanticsNodes().isNotEmpty() }
+        rule.onNodeWithText("Salvar câmera no painel").performScrollTo().performClick()
+        rule.waitUntil(10_000) { rule.onAllNodesWithText("Abrir visualizador interno").fetchSemanticsNodes().isNotEmpty() }
+        rule.onNodeWithText("Portão").performClick()
+        rule.onNodeWithText("Conexão da câmera pendente").assertExists()
+        Assert.assertEquals("Viewing must stay inside Enterprise", "org.enterprisecams.app", device.currentPackageName)
+        rule.onNodeWithText("Testar vídeo interno").performScrollTo().performClick()
+        rule.waitUntil(20_000) { rule.onAllNodesWithText("Vídeo de teste em reprodução").fetchSemanticsNodes().isNotEmpty() }
+        rule.onNodeWithText("Pausar").performScrollTo().performClick()
+        rule.waitUntil(5_000) { rule.onAllNodesWithText("Reprodução pausada ou concluída").fetchSemanticsNodes().isNotEmpty() }
+        rule.onNodeWithText("Reproduzir").performClick()
+        rule.waitUntil(5_000) { rule.onAllNodesWithText("Vídeo de teste em reprodução").fetchSemanticsNodes().isNotEmpty() }
+        capture("02b-internal-video")
+        rule.activityRule.scenario.moveToState(androidx.lifecycle.Lifecycle.State.CREATED)
+        rule.activityRule.scenario.moveToState(androidx.lifecycle.Lifecycle.State.RESUMED)
+        rule.waitUntil(20_000) { rule.onAllNodesWithText("Vídeo de teste em reprodução").fetchSemanticsNodes().isNotEmpty() }
+        rule.onNodeWithContentDescription("Voltar ao painel").performClick()
         rule.onNodeWithContentDescription("Favoritar Portão").performClick()
         rule.onNodeWithText("Favoritas").performClick()
         rule.onNodeWithText("Portão").assertExists()
@@ -93,17 +101,22 @@ class CameraFlowTest {
         rule.waitUntil(10_000) { rule.onAllNodesWithText("Suas câmeras, no mesmo lugar.").fetchSemanticsNodes().isNotEmpty() }
     }
 
-    @Test fun missingAppCannotBeMarkedConfiguredAndDraftSurvivesRecreation() {
+    @Test fun cameraCanBeSavedWithoutVendorAppAndDraftSurvivesRecreation() {
         fillCamera("TowerCam", "Hilevel")
         rule.onNodeWithText("Instalar Hilevel").performScrollTo().assertExists()
-        rule.onNodeWithText("Concluí a configuração").performScrollTo().assertIsNotEnabled()
+        rule.onNodeWithText("Salvar câmera no painel").performScrollTo().assertIsEnabled()
         rule.activityRule.scenario.recreate()
         rule.waitUntil(10_000) { rule.onAllNodesWithText("Instalar Hilevel").fetchSemanticsNodes().isNotEmpty() }
-        rule.onNodeWithText("Concluí a configuração").performScrollTo().assertIsNotEnabled()
+        rule.onNodeWithText("Salvar câmera no painel").performScrollTo().assertIsEnabled()
         rule.onNodeWithContentDescription("Voltar ao painel").performClick()
         rule.onNodeWithText("Continuar cadastro").performClick()
         rule.onNodeWithText("TowerCam").assertExists()
-        capture("04-missing-app")
+        rule.onNodeWithText("Salvar câmera no painel").performScrollTo().performClick()
+        rule.waitUntil(10_000) { rule.onAllNodesWithText("Abrir visualizador interno").fetchSemanticsNodes().isNotEmpty() }
+        rule.onNodeWithText("TowerCam").performClick()
+        rule.onNodeWithText("Conexão da câmera pendente").assertExists()
+        Assert.assertEquals("org.enterprisecams.app", device.currentPackageName)
+        capture("04-missing-app-internal-view")
     }
 
     @Test fun largeTextKeepsSetupActionsReachable() {
@@ -112,7 +125,7 @@ class CameraFlowTest {
             rule.activityRule.scenario.recreate()
             fillCamera("Câmera da entrada principal", "V380 Pro")
             rule.onNodeWithText("Instalar V380 Pro").performScrollTo().assertIsDisplayed()
-            rule.onNodeWithText("Concluí a configuração").performScrollTo().assertIsDisplayed()
+            rule.onNodeWithText("Salvar câmera no painel").performScrollTo().assertIsDisplayed()
             capture("05-large-text")
         } finally { device.executeShellCommand("settings put system font_scale 1.0") }
     }
