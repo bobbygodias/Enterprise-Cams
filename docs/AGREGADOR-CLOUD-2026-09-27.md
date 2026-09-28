@@ -122,3 +122,9 @@ A publicação pelo conector GitHub foi concluída e conferida. PR de trabalho: 
 - Exemplo Android oficial encontrado nesta investigação: https://github.com/GWTimes/IoTVideo-Android
 
 Nenhuma nova integração com nuvem, compra, renovação, mensagem a fabricante ou teste em câmera física foi realizado nesta sessão. Nenhum novo APK foi validado ou entregue.
+
+## Consulta oficial complementar — 27/09/2026, São Paulo
+
+A [documentação Tencent para aplicativos próprios](https://cloud.tencent.com/document/product/1131/83097) orienta criar uma aplicação para obter AppKey/AppSecret e manter AppSecret no backend. Há [SDK Android de vídeo documentado](https://cloud.tencent.com/document/product/1131/54716). Isso identifica uma oferta pública de SDK; não demonstra acesso de um projeto novo às contas, câmeras e assinaturas existentes do Yoosee/Cloud Links. Compatibilidade e autorização entre os dois contextos continuam sem validação. Não criar uma nuvem paralela nem refazer o vínculo das câmeras como atalho.
+
+A página oficial [Multi-Platform Access](https://www.yoosee.com/productcontentb/491.html) anuncia acesso por navegador de PC, mas não apresentou endpoint de login ou API incorporável na consulta. O [artigo de desktop do próprio fornecedor](https://business.yoosee.com/blog/yoosee-app-for-pc-download), datado de 09/09/2026, descreve cliente Windows e emulador Android conforme o modelo. O [link de compartilhamento](https://share.yoosee.com/share/) orienta abrir/instalar Yoosee e autenticar lá. Portanto, não foi comprovado um player web que possa simplesmente ser incorporado ao Enterprise; essa possibilidade permanece uma investigação, não uma função entregue.

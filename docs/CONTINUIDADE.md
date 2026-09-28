@@ -1,5 +1,11 @@
 # Enterprise Cams — continuidade da missão
 
+## Estado da última revisão — 669a5c1
+
+Workflow [36368294535](https://github.com/bobbygodias/Enterprise-Cams/actions/runs/36368294535), job `108759014795`: validação do fluxo completo em andamento. O APK já foi compilado. SHA256 do APK desta execução: `470170201f9ae1cd8fd5012a0ae8b294255bac2e51db8460758e4d860fe31e5a`; 17.991.566 bytes. Não confundir com o APK b543d90 abaixo. Entre esses commits, somente o teste de busca e esta documentação mudaram.
+
+Para reduzir recompilações futuras, foi preparado cache gravável pelo setup-gradle em `main` e `feat/cloud-aggregation-contract`, mais `org.gradle.caching=true`. O log anterior confirmava `cache-read-only: true` e ausência de salvamento ao final. A configuração segue [setup-gradle](https://github.com/gradle/actions/blob/main/docs/setup-gradle.md). O ganho de tempo ainda não foi medido e não altera a execução já iniciada.
+
 ## Resultado de 27/09, 23h00 — reprodução confirmada no emulador
 
 No commit `b543d90`, workflow [36367457658](https://github.com/bobbygodias/Enterprise-Cams/actions/runs/36367457658), o clipe local **renderizou imagem**, e o teste passou por pausa, retomada, retorno do segundo plano, permanência no Enterprise, favorito persistido e edição do cadastro. A captura `02b-internal-video.png` comprova a imagem. Build debug/release, testes unitários e lint passaram. A suíte terminou em **6/7**, com falha posterior em `CameraFlowTest.kt:96`, ao limpar a busca — não no player. O teclado estava aberto e a consulta continuava preenchida na captura.
