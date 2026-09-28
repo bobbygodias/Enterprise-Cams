@@ -2,7 +2,7 @@
 
 ## Estado da última revisão — 669a5c1
 
-Workflow [36368294535](https://github.com/bobbygodias/Enterprise-Cams/actions/runs/36368294535), job `108759014795`: validação do fluxo completo em andamento. O APK já foi compilado. SHA256 do APK desta execução: `470170201f9ae1cd8fd5012a0ae8b294255bac2e51db8460758e4d860fe31e5a`; 17.991.566 bytes. Não confundir com o APK b543d90 abaixo. Entre esses commits, somente o teste de busca e esta documentação mudaram.
+Workflow [36368294535](https://github.com/bobbygodias/Enterprise-Cams/actions/runs/36368294535), job `108759014795`: **APROVADO: 24/24 testes unitários e 7/7 testes de tela**, build debug/release e lint (0 erros, 21 avisos). Imagem, pausa/retomada, segundo plano, permanência no Enterprise e fluxo completo de busca/edição/exclusão confirmados no emulador API 35. O APK foi compilado e salvo. SHA256 do APK desta execução: `470170201f9ae1cd8fd5012a0ae8b294255bac2e51db8460758e4d860fe31e5a`; 17.991.566 bytes. Não confundir com o APK b543d90 abaixo. Entre esses commits, somente o teste de busca e esta documentação mudaram.
 
 Para reduzir recompilações futuras, foi preparado cache gravável pelo setup-gradle em `main` e `feat/cloud-aggregation-contract`, mais `org.gradle.caching=true`. O log anterior confirmava `cache-read-only: true` e ausência de salvamento ao final. A configuração segue [setup-gradle](https://github.com/gradle/actions/blob/main/docs/setup-gradle.md). O ganho de tempo ainda não foi medido e não altera a execução já iniciada.
 
