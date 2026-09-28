@@ -68,12 +68,7 @@ class HubViewModel(application: Application) : AndroidViewModel(application) {
     fun discardDraft() = mutate { repository.update { it.copy(draft = null) } }
 
     fun finishDraft() {
-        val provider = mutable.value.hub.draft?.providerId?.let(Providers::find) ?: return
-        if (officialApps.availability(provider) != AppAvailability.READY) {
-            refreshApps()
-            message("Instale e habilite ${provider.name} para concluir o cadastro.")
-            return
-        }
+        // Saving a panel entry is independent of an installed vendor app or cloud login.
         mutate("Câmera adicionada ao seu painel.") { repository.update(HubCodec::finishDraft) }
     }
 

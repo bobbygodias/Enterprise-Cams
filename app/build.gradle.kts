@@ -12,8 +12,8 @@ android {
         applicationId = "org.enterprisecams.app"
         minSdk = 23
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = 3
+        versionName = "0.2.1-preview"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -47,6 +47,9 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
     implementation("androidx.datastore:datastore-preferences:1.1.4")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1")
+    implementation("androidx.media3:media3-exoplayer:1.8.0")
+    implementation("androidx.media3:media3-exoplayer-hls:1.8.0")
+    implementation("androidx.media3:media3-ui:1.8.0")
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation(platform("androidx.compose:compose-bom:2025.04.01"))
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")

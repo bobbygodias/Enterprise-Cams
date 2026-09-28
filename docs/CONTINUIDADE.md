@@ -1,5 +1,39 @@
 # Enterprise Cams — continuidade da missão
 
+## Estado da última revisão — 669a5c1
+
+Workflow [36368294535](https://github.com/bobbygodias/Enterprise-Cams/actions/runs/36368294535), job `108759014795`: **APROVADO: 24/24 testes unitários e 7/7 testes de tela**, build debug/release e lint (0 erros, 21 avisos). Imagem, pausa/retomada, segundo plano, permanência no Enterprise e fluxo completo de busca/edição/exclusão confirmados no emulador API 35. O APK foi compilado e salvo. SHA256 do APK desta execução: `470170201f9ae1cd8fd5012a0ae8b294255bac2e51db8460758e4d860fe31e5a`; 17.991.566 bytes. Não confundir com o APK b543d90 abaixo. Entre esses commits, somente o teste de busca e esta documentação mudaram.
+
+Para reduzir recompilações futuras, foi preparado cache gravável pelo setup-gradle em `main` e `feat/cloud-aggregation-contract`, mais `org.gradle.caching=true`. O log anterior confirmava `cache-read-only: true` e ausência de salvamento ao final. A configuração segue [setup-gradle](https://github.com/gradle/actions/blob/main/docs/setup-gradle.md). O ganho de tempo ainda não foi medido e não altera a execução já iniciada.
+
+## Resultado de 27/09, 23h00 — reprodução confirmada no emulador
+
+No commit `b543d90`, workflow [36367457658](https://github.com/bobbygodias/Enterprise-Cams/actions/runs/36367457658), o clipe local **renderizou imagem**, e o teste passou por pausa, retomada, retorno do segundo plano, permanência no Enterprise, favorito persistido e edição do cadastro. A captura `02b-internal-video.png` comprova a imagem. Build debug/release, testes unitários e lint passaram. A suíte terminou em **6/7**, com falha posterior em `CameraFlowTest.kt:96`, ao limpar a busca — não no player. O teclado estava aberto e a consulta continuava preenchida na captura.
+
+A revisão seguinte altera somente a automação: fecha o teclado com Espresso, aguarda a ociosidade do dispositivo, toca fisicamente no botão de limpar e verifica que a consulta desapareceu. A lista é rolada até o cartão antes de exigir sua exibição; itens fora da área visível de uma LazyColumn podem não estar compostos. Não aumenta timeouts nem remove as verificações do player. Os resultados desta revisão precisam ser conferidos no novo workflow.
+
+APK `b543d90`: 17.991.566 bytes; SHA256 `adf6cf627c33cd044c23609f033e7dd65ec8f0358324aad25fa0b9393d217507`. A conexão com nuvem/câmera real permanece pendente.
+
+## Retomada de 27/09, 22h46 — visualizador 0.2.1-preview
+
+A execução 36349436508, commit `1b1b84b`, terminou com build debug/release, unitários e lint aprovados e 6/7 testes de tela aprovados, inclusive na repetição do workflow. A captura exclusiva do teste que falhou mostra **“Conexão da câmera pendente” e o botão “Testar vídeo interno”**, sem a tela de reprodução. Portanto, o timeout não prova falha de decodificação: o acionamento do player não ocorreu nessa execução. O aviso transitório de cadastro, apresentado pelo Scaffold sobre os controles inferiores, é a hipótese de interceptação do toque. A revisão 0.2.1 limpa a mensagem e dispensa o snackbar ao navegar para a câmera. O teste mantém o toque físico e exige a transição para o player em até cinco segundos antes de esperar o primeiro quadro. Nenhuma asserção de reprodução foi removida. Validar no CI antes de afirmar que esta hipótese resolveu a falha.
+
+Permanece pendente a integração autenticada com as nuvens dos fabricantes. Este reparo é do visualizador interno de teste.
+
+## Prévia do visualizador interno — atualização posterior de 27/09/2026
+
+A branch agora contém a implementação 0.2.0-preview: tela interna por câmera, player Media3, clipe local de teste e reprodução temporária de links HTTPS autorizados; cadastro sem depender da instalação oficial. O CI foi acionado para compilar e verificar. **Não há integração autenticada com as nuvens nem teste com câmera física.** O relato abaixo sobre “apenas launcher” descreve o estado anterior desta sessão. O roteiro e os limites atuais estão em [PLAYER-TEST.md](PLAYER-TEST.md). Não presumir APK compilado ou testes aprovados sem conferir o workflow do commit.
+
+O login moderno examinado em `HttpServiceAdapter.getRequestBody` acrescenta `appId`/`appToken`, dados de versão/pacote/região; a assinatura anônima depende de uma interface do SDK. Portanto, mapear email/senha e `accessId`/`accessToken` não encerra a integração independente. Nenhum segredo de terceiros foi levado para o código próprio.
+
+## Atualização prioritária — 27/09/2026
+
+A orientação atual está em [AGREGADOR-CLOUD-2026-09-27.md](AGREGADOR-CLOUD-2026-09-27.md) e prevalece sobre o relato histórico abaixo. Bobby exige vídeo e controles dentro do Enterprise Cams, mantendo contas, nuvens, assinaturas e remuneração dos fabricantes. Compra/renovação no aplicativo oficial. ONVIF não pode substituir a integração se alterar essa relação.
+
+A base de `main` foi recuperada no commit `d146221`; o PR #1 já foi incorporado. O novo emblema circular foi aplicado na branch `feat/cloud-aggregation-contract`. A inspeção das quatro famílias de APKs não encontrou adesão à incorporação de Activities entre aplicativos. Ainda falta uma integração autenticada real. O experimento local de ONVIF foi isolado, não compilado e não aprovado como caminho principal. Não há um novo APK funcional para entregar.
+
+O restante deste documento descreve a etapa antiga do launcher e não deve ser tomado como requisito de conclusão atual.
+
 Atualizado em 11 de setembro de 2026. Bobby Dias & Andrew Vox.
 
 ## Leia isto primeiro

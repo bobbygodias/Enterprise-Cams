@@ -1,52 +1,39 @@
 # Enterprise Cams
 
-Um painel Android para encontrar suas câmeras pelo nome e pelo local, com encaminhamento ao aplicativo oficial de cada câmera.
+Agregador Android com telas internas e contas, nuvens e assinaturas mantidas pelos fabricantes. Renovação da nuvem continua no aplicativo oficial.
 
-**Estado: prévia Android 0.1.0 com QR compilada; 22 testes unitários aprovados. Na última rodada concluída, cinco de sete testes de tela passaram; duas falhas eram do próprio teste/automação e receberam correções focadas. A validação atual está em execução.** O repositório começou com a licença CC0. O registro atualizado de testes e limites está em [CONTINUIDADE.md](docs/CONTINUIDADE.md).
+**Estado desta branch: 0.2.1-preview, visualizador interno em implementação/teste.** Tocar em uma câmera agora abre sua tela no Enterprise. O player reproduz um clipe local claramente identificado e links HTTPS HLS/MP4 autorizados. **Login e vídeo das nuvens Yoosee, iCSee, Hilevel, V380 e V380 Pro ainda não estão integrados.** Não confundir o teste do player com uma câmera conectada. Confira o resultado do workflow para saber se o APK deste commit foi compilado e testado.
 
-## O que esta versão faz
+## O que mudou
 
-- Organiza acessos por câmera/local, com busca, favoritos e edição.
-- Lê QR pela câmera ou por imagem e identifica aplicativos do catálogo por links/nomes conhecidos, com alternativa manual quando só há um serial.
-- Reconhece Yoosee, iCSee, V380, V380 Pro e Hilevel instalados no mesmo perfil Android.
-- Encaminha à Play Store; se a loja não abrir, tenta sua página HTTPS no navegador.
-- Orienta a configuração da câmera no aplicativo oficial e conserva o cadastro ao sair e voltar.
-- Adiciona o acesso ao painel após confirmação do usuário e verificação de que o aplicativo está disponível.
-- Abre o aplicativo correspondente ao tocar no acesso.
-- Exporta/importa backup JSON local, sem apagar os cadastros existentes na importação.
-- Funciona sem conta Enterprise Cams, backend, anúncios, telemetria ou Google Play Services.
+- Visualizador interno nativo com pausa, som, estados de carga/erro e liberação em segundo plano.
+- Cadastro independente da instalação do aplicativo do fabricante; busca, favoritos, QR, edição e backups locais preservados.
+- Clipe de teste incluído no APK, sem internet ou conta. Modo de link HTTPS temporário na compilação debug.
+- Novo logotipo circular aprovado aplicado ao painel e ao ícone Android.
+- Nenhum redirecionamento automático para outro aplicativo ao tocar na câmera. Configuração inicial/instalação oficiais permanecem ações explícitas na etapa de cadastro.
+- Sem anúncios ou telemetria; sem segredos de fabricantes ou bibliotecas proprietárias copiadas dos APKs.
 
-## Limite atual, sem ambiguidade
+## Testar e construir
 
-**O toque abre a tela inicial do aplicativo oficial. A seleção da câmera ainda é feita nele.** Não há deep link por dispositivo verificado, importação automática do inventário do fabricante, incorporação de telas externas, player interno, ONVIF ou RTSP nesta entrega. As funções e o vídeo continuam no aplicativo original.
+[Instalação](docs/INSTALL.md) · [Roteiro de teste e limites](docs/PLAYER-TEST.md) · [PR #2](https://github.com/bobbygodias/Enterprise-Cams/pull/2)
 
-O objetivo de abrir diretamente uma câmera específica permanece no projeto. Cada adaptador precisará de uma interface documentada ou testada, com identificação da câmera e retorno consistente. Instalar o aplicativo original, por si só, não concede acesso ao inventário nem a seus controles.
-
-O painel funciona offline. A câmera, os anúncios, o login, a latência e a dependência de internet do aplicativo oficial seguem as condições dele. Esta versão não remove publicidade nem restrições de terceiros.
-
-## Construção
-
-JDK 17, Android SDK 35 e Gradle 8.11.1. Android mínimo: 6.0/API 23; alvo desta base: API 35. Kotlin nativo com Jetpack Compose; dados privados em DataStore.
+JDK 17, Android SDK 35, Gradle 8.11.1. Android mínimo: API 23. Kotlin e Jetpack Compose, DataStore e Media3 1.8.0.
 
 ```sh
 ./gradlew :app:testDebugUnitTest :app:lintDebug :app:assembleDebug
-./gradlew :app:assembleRelease
+./gradlew :app:assembleRelease :app:assembleDebugAndroidTest
 ```
 
-O debug instalável fica em `app/build/outputs/apk/debug/app-debug.apk`. O release é otimizado e **não assinado**; não é um APK de distribuição final. Nenhuma chave privada é versionada. Consulte [INSTALL.md](docs/INSTALL.md).
+Debug instalável: `app/build/outputs/apk/debug/app-debug.apk`. Release otimizado ainda sem assinatura de distribuição. O workflow publica o APK de teste depois de compilar e executar testes unitários; lint, release e testes em emulador continuam em seguida. Baixar um artefato antes do fim do workflow não comprova aprovação de todas as etapas.
 
-O workflow Android executa compilação, testes de dados, lint e testes instrumentados com captura de telas. **O módulo `qa-stub` é um simulador isolado, exclusivamente para CI**, com identificação de pacote Yoosee para verificar visibilidade e encaminhamento. Não contém o software oficial, não é uma integração real, não compõe o APK Enterprise Cams e jamais deve ser instalado no aparelho de um usuário ou distribuído.
+O módulo `qa-stub` é exclusivo do emulador e nunca compõe o APK Enterprise. Não instalar esse simulador no telefone.
 
-## Projeto
+## Continuidade
 
-- [Briefing e continuidade](docs/CONTINUIDADE.md)
-- [Adaptadores e fontes](docs/INTEGRACOES.md)
-- [Análise dos APKs, incluindo XMEye](docs/ANALISE-APKS.md)
-- [Código em revisão — PR #1](https://github.com/bobbygodias/Enterprise-Cams/pull/1)
-- [Validação atual das correções](https://github.com/bobbygodias/Enterprise-Cams/actions/runs/34579130893)
-- [Escopo e evolução](docs/ESCOPO.md)
+- [Contrato atual e pesquisa de integração](docs/AGREGADOR-CLOUD-2026-09-27.md)
+- [Histórico de trabalho](docs/CONTINUIDADE.md)
 - [Privacidade](docs/PRIVACIDADE.md)
 
-A referência visual fornecida para o projeto foi preservada no ícone e na tela inicial: robô prateado, olhos azuis, câmera e fundo preto. O painel segue a organização por câmera/local explicitada no briefing. A tipografia, o espaçamento e os componentes desta primeira implementação são propostas concretas para revisão.
+Documentos antigos de escopo/integração descrevem a etapa 0.1.0 do launcher; o contrato de 27/09/2026 e o roteiro desta prévia prevalecem.
 
-Licença [CC0 1.0](LICENSE), preservada da criação do repositório. Bobby Dias & Andrew Vox.
+Código próprio sob [CC0 1.0](LICENSE). Dependências conservam suas respectivas licenças. Bobby Dias & Andrew Vox.
