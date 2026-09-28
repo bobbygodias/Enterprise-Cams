@@ -1,4 +1,4 @@
-# Enterprise Cams 0.2.0-preview — teste do visualizador interno
+# Enterprise Cams 0.2.1-preview — teste do visualizador interno
 
 Esta prévia abre cada câmera em uma tela do Enterprise. Não autentica contas Yoosee, iCSee, Hilevel, V380 ou V380 Pro. O cadastro de uma câmera não representa uma conexão com ela.
 

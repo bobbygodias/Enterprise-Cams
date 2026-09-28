@@ -62,8 +62,12 @@ class CameraFlowTest {
         rule.waitUntil(10_000) { rule.onAllNodesWithText("Abrir visualizador interno").fetchSemanticsNodes().isNotEmpty() }
         rule.onNodeWithText("Portão").performClick()
         rule.onNodeWithText("Conexão da câmera pendente").assertExists()
+        rule.onNodeWithText("Câmera adicionada ao seu painel.").assertDoesNotExist()
         Assert.assertEquals("Viewing must stay inside Enterprise", "org.enterprisecams.app", device.currentPackageName)
-        rule.onNodeWithText("Testar vídeo interno").performScrollTo().performClick()
+        rule.onNodeWithText("Testar vídeo interno").performScrollTo().assertIsDisplayed().performClick()
+        rule.waitUntil(5_000) {
+            rule.onAllNodesWithText("TESTE DO PLAYER · imagem gerada, sem câmera conectada").fetchSemanticsNodes().isNotEmpty()
+        }
         rule.waitUntil(20_000) { rule.onAllNodesWithText("Vídeo de teste em reprodução").fetchSemanticsNodes().isNotEmpty() }
         rule.onNodeWithText("Pausar").performScrollTo().performClick()
         rule.waitUntil(5_000) { rule.onAllNodesWithText("Reprodução pausada ou concluída").fetchSemanticsNodes().isNotEmpty() }

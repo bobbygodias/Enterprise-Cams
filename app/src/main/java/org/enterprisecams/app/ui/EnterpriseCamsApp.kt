@@ -142,7 +142,12 @@ fun EnterpriseCamsApp(vm: HubViewModel) {
                 else -> HomeScreen(
                     cameras = ui.hub.cameras, draft = ui.hub.draft, apps = ui.apps, enabled = !ui.busy,
                     onAdd = { vm.startDraft(); showSetup = true }, onResumeDraft = { showSetup = true },
-                    onOpen = { camera -> selectedCameraId = camera.id },
+                    onOpen = { camera ->
+                        // A panel confirmation must not cover the viewer's playback controls.
+                        snackbar.currentSnackbarData?.dismiss()
+                        vm.dismissMessage()
+                        selectedCameraId = camera.id
+                    },
                     onFavorite = { vm.favorite(it.id) }, onEdit = { editCamera = it }, onRemove = { deleteCamera = it },
                 )
             }

@@ -32,14 +32,14 @@ jobs:
       - name: Prepare installable test APK
         run: |
           mkdir -p delivery
-          cp app/build/outputs/apk/debug/app-debug.apk delivery/Enterprise-Cams-0.2.0-preview-debug.apk
-          sha256sum delivery/Enterprise-Cams-0.2.0-preview-debug.apk > delivery/SHA256SUMS.txt
+          cp app/build/outputs/apk/debug/app-debug.apk delivery/Enterprise-Cams-0.2.1-preview-debug.apk
+          sha256sum delivery/Enterprise-Cams-0.2.1-preview-debug.apk > delivery/SHA256SUMS.txt
           cp docs/INSTALL.md delivery/INSTALL.md
           cp docs/PLAYER-TEST.md delivery/PLAYER-TEST.md
           printf '%s\n' "$GITHUB_SHA" > delivery/COMMIT.txt
       - uses: actions/upload-artifact@v4
         with:
-          name: Enterprise-Cams-0.2.0-preview-debug
+          name: Enterprise-Cams-0.2.1-preview-debug
           path: delivery/
           retention-days: 30
       - name: Lint, release build and instrumentation compilation

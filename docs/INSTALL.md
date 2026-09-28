@@ -1,6 +1,6 @@
-# Enterprise Cams 0.2.0-preview — APK de testes
+# Enterprise Cams 0.2.1-preview — APK de testes
 
-Arquivo: `Enterprise-Cams-0.2.0-preview-debug.apk`. Pacote: `org.enterprisecams.app`. Android 6.0/API 23 ou superior. Assinatura debug de testes; ainda sem assinatura estável de distribuição.
+Arquivo: `Enterprise-Cams-0.2.1-preview-debug.apk`. Pacote: `org.enterprisecams.app`. Android 6.0/API 23 ou superior. Assinatura debug de testes; ainda sem assinatura estável de distribuição.
 
 Esta prévia testa o visualizador interno. **Ainda não conecta a conta nem transmite a câmera pela nuvem do fabricante.** O vídeo de teste não é uma câmera real. Veja [PLAYER-TEST.md](PLAYER-TEST.md) para o roteiro completo.
 

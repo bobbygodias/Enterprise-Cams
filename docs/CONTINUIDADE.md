@@ -1,5 +1,11 @@
 # Enterprise Cams — continuidade da missão
 
+## Retomada de 27/09, 22h46 — visualizador 0.2.1-preview
+
+A execução 36349436508, commit `1b1b84b`, terminou com build debug/release, unitários e lint aprovados e 6/7 testes de tela aprovados, inclusive na repetição do workflow. A captura exclusiva do teste que falhou mostra **“Conexão da câmera pendente” e o botão “Testar vídeo interno”**, sem a tela de reprodução. Portanto, o timeout não prova falha de decodificação: o acionamento do player não ocorreu nessa execução. O aviso transitório de cadastro, apresentado pelo Scaffold sobre os controles inferiores, é a hipótese de interceptação do toque. A revisão 0.2.1 limpa a mensagem e dispensa o snackbar ao navegar para a câmera. O teste mantém o toque físico e exige a transição para o player em até cinco segundos antes de esperar o primeiro quadro. Nenhuma asserção de reprodução foi removida. Validar no CI antes de afirmar que esta hipótese resolveu a falha.
+
+Permanece pendente a integração autenticada com as nuvens dos fabricantes. Este reparo é do visualizador interno de teste.
+
 ## Prévia do visualizador interno — atualização posterior de 27/09/2026
 
 A branch agora contém a implementação 0.2.0-preview: tela interna por câmera, player Media3, clipe local de teste e reprodução temporária de links HTTPS autorizados; cadastro sem depender da instalação oficial. O CI foi acionado para compilar e verificar. **Não há integração autenticada com as nuvens nem teste com câmera física.** O relato abaixo sobre “apenas launcher” descreve o estado anterior desta sessão. O roteiro e os limites atuais estão em [PLAYER-TEST.md](PLAYER-TEST.md). Não presumir APK compilado ou testes aprovados sem conferir o workflow do commit.

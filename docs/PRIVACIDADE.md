@@ -1,4 +1,4 @@
-# Privacidade — prévia 0.2.0
+# Privacidade — prévia 0.2.1
 
 O Enterprise guarda nomes, locais, fabricante e favoritos no armazenamento privado do Android. Não cria conta própria, não contém anúncios ou telemetria e não solicita credenciais de nuvem nesta prévia.
 

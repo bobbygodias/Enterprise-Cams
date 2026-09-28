@@ -2,7 +2,7 @@
 
 Agregador Android com telas internas e contas, nuvens e assinaturas mantidas pelos fabricantes. Renovação da nuvem continua no aplicativo oficial.
 
-**Estado desta branch: 0.2.0-preview, visualizador interno em implementação/teste.** Tocar em uma câmera agora abre sua tela no Enterprise. O player reproduz um clipe local claramente identificado e links HTTPS HLS/MP4 autorizados. **Login e vídeo das nuvens Yoosee, iCSee, Hilevel, V380 e V380 Pro ainda não estão integrados.** Não confundir o teste do player com uma câmera conectada. Confira o resultado do workflow para saber se o APK deste commit foi compilado e testado.
+**Estado desta branch: 0.2.1-preview, visualizador interno em implementação/teste.** Tocar em uma câmera agora abre sua tela no Enterprise. O player reproduz um clipe local claramente identificado e links HTTPS HLS/MP4 autorizados. **Login e vídeo das nuvens Yoosee, iCSee, Hilevel, V380 e V380 Pro ainda não estão integrados.** Não confundir o teste do player com uma câmera conectada. Confira o resultado do workflow para saber se o APK deste commit foi compilado e testado.
 
 ## O que mudou
 
