@@ -1,5 +1,13 @@
 # Enterprise Cams — continuidade da missão
 
+## Resultado de 27/09, 23h00 — reprodução confirmada no emulador
+
+No commit `b543d90`, workflow [36367457658](https://github.com/bobbygodias/Enterprise-Cams/actions/runs/36367457658), o clipe local **renderizou imagem**, e o teste passou por pausa, retomada, retorno do segundo plano, permanência no Enterprise, favorito persistido e edição do cadastro. A captura `02b-internal-video.png` comprova a imagem. Build debug/release, testes unitários e lint passaram. A suíte terminou em **6/7**, com falha posterior em `CameraFlowTest.kt:96`, ao limpar a busca — não no player. O teclado estava aberto e a consulta continuava preenchida na captura.
+
+A revisão seguinte altera somente a automação: fecha o teclado com Espresso, aguarda a ociosidade do dispositivo, toca fisicamente no botão de limpar e verifica que a consulta desapareceu. A lista é rolada até o cartão antes de exigir sua exibição; itens fora da área visível de uma LazyColumn podem não estar compostos. Não aumenta timeouts nem remove as verificações do player. Os resultados desta revisão precisam ser conferidos no novo workflow.
+
+APK `b543d90`: 17.991.566 bytes; SHA256 `adf6cf627c33cd044c23609f033e7dd65ec8f0358324aad25fa0b9393d217507`. A conexão com nuvem/câmera real permanece pendente.
+
 ## Retomada de 27/09, 22h46 — visualizador 0.2.1-preview
 
 A execução 36349436508, commit `1b1b84b`, terminou com build debug/release, unitários e lint aprovados e 6/7 testes de tela aprovados, inclusive na repetição do workflow. A captura exclusiva do teste que falhou mostra **“Conexão da câmera pendente” e o botão “Testar vídeo interno”**, sem a tela de reprodução. Portanto, o timeout não prova falha de decodificação: o acionamento do player não ocorreu nessa execução. O aviso transitório de cadastro, apresentado pelo Scaffold sobre os controles inferiores, é a hipótese de interceptação do toque. A revisão 0.2.1 limpa a mensagem e dispensa o snackbar ao navegar para a câmera. O teste mantém o toque físico e exige a transição para o player em até cinco segundos antes de esperar o primeiro quadro. Nenhuma asserção de reprodução foi removida. Validar no CI antes de afirmar que esta hipótese resolveu a falha.
