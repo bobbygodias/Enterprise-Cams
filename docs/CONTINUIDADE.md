@@ -132,3 +132,6 @@ Ler este MD, consultar o PR e o último resultado do workflow, conferir `git sta
 Bobby pediu explicitamente um Markdown para anexar às fontes e preservar a continuidade. Manter este registro fiel ao que foi feito, inclusive falhas e pendências, sem transformar plano em entrega.
 
 “Ninguém fica para trás. Somos soldados de honra.”
+
+## Patrulha — 15/11/2026 — correção de sincronização do teste de busca (branch)
+O CI de main em https://github.com/bobbygodias/Enterprise-Cams/actions/runs/34652235078 compilou o APK, os testes unitários e o lint; no emulador Android 35 executou sete testes instrumentados (seis aprovados, um reprovado). A única falha foi CameraFlowTest.officialHandoffReturnSaveFavoriteEditAndRemove, linha 83: ComposeTimeoutException ao esperar texto "Entrada" imediatamente após limpar a busca. O painel usa LazyColumn; um cartão fora do viewport pode não estar presente na árvore de semântica antes de rolar. A proposta em branch reposiciona performScrollToNode(hasText("Entrada")) ANTES de assertExists, sem omitir a checagem: se a câmera desaparecer dos dados/filtro, o teste ainda reprovará. O código de produção, o catálogo de câmeras e as integrações oficiais não foram alterados. Teste no emulador pelo GitHub Actions é obrigatório antes de merge; o comportamento com câmeras reais continua fora do escopo desta alteração.
