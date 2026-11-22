@@ -79,10 +79,17 @@ class CameraFlowTest {
         rule.waitUntil(10_000) { rule.onAllNodesWithText("Entrada").fetchSemanticsNodes().isNotEmpty() }
         rule.onNodeWithText("Buscar câmera ou local").performTextInput("Não existe")
         rule.onNodeWithText("Nenhuma câmera neste filtro. Experimente outro nome ou local.").assertExists()
-        rule.onNodeWithContentDescription("Limpar busca").performScrollTo().performClick()
-        rule.waitUntil(10_000) { rule.onAllNodesWithText("Entrada").fetchSemanticsNodes().isNotEmpty() }
-        capture("03b-cleared-search")
+        // IME animations are not synchronized with the Compose test clock.
+        // Dismiss the keyboard before tapping the clear-search affordance.
+        androidx.test.espresso.Espresso.closeSoftKeyboard()
+        device.waitForIdle(2_000)
+        rule.onNodeWithContentDescription("Limpar busca").performScrollTo().assertIsDisplayed().performClick()
+        rule.onNodeWithText("Não existe").assertDoesNotExist()
+        // LazyColumn compõe apenas itens visíveis. Primeiro role até o cartão;
+        // consultar a árvore antes de rolar pode expirar sem indicar perda de dados.
         rule.onNode(hasScrollToNodeAction()).performScrollToNode(hasText("Entrada"))
+        rule.onNodeWithText("Entrada").assertExists()
+        capture("03b-cleared-search")
         rule.onNodeWithContentDescription("Opções de Entrada").performClick()
         rule.onNodeWithText("Remover do painel").performClick()
         rule.onNodeWithText("Cancelar").performClick()
