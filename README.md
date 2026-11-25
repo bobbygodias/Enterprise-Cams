@@ -1,14 +1,22 @@
 # Enterprise Cams
 
-Um painel Android para encontrar suas câmeras pelo nome e pelo local, com encaminhamento ao aplicativo oficial de cada câmera.
+Projeto Android de **central unificada de câmeras de diferentes fabricantes**, com identificação por QR Code, conectores próprios e vídeo e controles dentro de um único aplicativo. **Yoosee e Hilevel são prioridades indispensáveis; outras marcas não são excluídas.** A primeira versão de painel/launcher foi uma etapa inicial, não o objetivo definitivo.
 
-**Estado: prévia Android 0.1.0 com QR compilada; 22 testes unitários aprovados. Na última rodada concluída, cinco de sete testes de tela passaram; duas falhas eram do próprio teste/automação e receberam correções focadas. A validação atual está em execução.** O repositório começou com a licença CC0. O registro atualizado de testes e limites está em [CONTINUIDADE.md](docs/CONTINUIDADE.md).
+## Finalidade acordada e arquitetura (25/11/2026)
+
+O Enterprise Cams deve permitir que o usuário identifique e adicione câmeras de ecossistemas variados sem precisar conhecer antecipadamente qual aplicativo oficial usar. O QR Code é uma entrada de descoberta: o aplicativo interpreta os dados realmente presentes (como identificador, endereço, marca, modelo ou link) e complementa a identificação por mecanismos de descoberta e informações disponíveis. O catálogo inicial de cinco pacotes **não limita o número de fabricantes** que poderemos integrar.
+
+Cada fabricante continua responsável pela **autenticação de suas contas e dispositivos**. Nosso trabalho é implementar a comunicação com esses fluxos existentes e construir a camada de interoperabilidade: identificação, escolha do conector, sessão autorizada, seleção da câmera, vídeo e controles na mesma interface. Não inventamos um novo sistema de autenticação em lugar do fabricante. Independência dos aplicativos oficiais não significa independência obrigatória dos servidores de nuvem de cada marca.
+
+Complicações de protocolos, compatibilidade e segurança são problemas de engenharia a enfrentar. A segurança deve ser implementada por medidas proporcionais aos riscos concretos, não por promessas de 100% de segurança. Os marcos técnicos devem produzir **código funcional e testes verificáveis**, além da documentação necessária. Consulte [Escopo](docs/ESCOPO.md) e [Integrações](docs/INTEGRACOES.md).
+
+**Estado observado na main em 25/11/2026: prévia Android 0.1.0, com leitura QR limitada ao catálogo e encaminhamento aos aplicativos oficiais.** A branch de QA do [PR #3](https://github.com/bobbygodias/Enterprise-Cams/pull/3) teve workflow aprovado em 22/11/2026, mas não demonstra vídeo de câmera real. O [PR #2](https://github.com/bobbygodias/Enterprise-Cams/pull/2) contém player interno experimental, e o [PR #4](https://github.com/bobbygodias/Enterprise-Cams/pull/4), pesquisa de contratos. Essas branches não comprovam o objetivo final. O repositório começou com a licença CC0; veja [CONTINUIDADE.md](docs/CONTINUIDADE.md).
 
 ## O que esta versão faz
 
 - Organiza acessos por câmera/local, com busca, favoritos e edição.
 - Lê QR pela câmera ou por imagem e identifica aplicativos do catálogo por links/nomes conhecidos, com alternativa manual quando só há um serial.
-- Reconhece Yoosee, iCSee, V380, V380 Pro e Hilevel instalados no mesmo perfil Android.
+- Nesta prévia, reconhece Yoosee, iCSee, V380, V380 Pro e Hilevel instalados no mesmo perfil Android; **não é um limite da arquitetura final**.
 - Encaminha à Play Store; se a loja não abrir, tenta sua página HTTPS no navegador.
 - Orienta a configuração da câmera no aplicativo oficial e conserva o cadastro ao sair e voltar.
 - Adiciona o acesso ao painel após confirmação do usuário e verificação de que o aplicativo está disponível.
@@ -42,8 +50,9 @@ O workflow Android executa compilação, testes de dados, lint e testes instrume
 - [Briefing e continuidade](docs/CONTINUIDADE.md)
 - [Adaptadores e fontes](docs/INTEGRACOES.md)
 - [Análise dos APKs, incluindo XMEye](docs/ANALISE-APKS.md)
-- [Código em revisão — PR #1](https://github.com/bobbygodias/Enterprise-Cams/pull/1)
-- [Validação atual das correções](https://github.com/bobbygodias/Enterprise-Cams/actions/runs/34579130893)
+- [Player interno experimental — PR #2](https://github.com/bobbygodias/Enterprise-Cams/pull/2)
+- [QA de interface — PR #3](https://github.com/bobbygodias/Enterprise-Cams/pull/3)
+- [Pesquisa de contratos — PR #4](https://github.com/bobbygodias/Enterprise-Cams/pull/4)
 - [Escopo e evolução](docs/ESCOPO.md)
 - [Privacidade](docs/PRIVACIDADE.md)
 
