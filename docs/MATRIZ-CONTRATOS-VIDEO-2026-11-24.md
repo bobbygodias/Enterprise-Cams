@@ -48,3 +48,25 @@ Uma implementação por fabricante precisa demonstrar, por evidência verificáv
 Foi feita **triagem estática** das fontes públicas e dos PRs #2/#3 em 24/11/2026. **Não** houve implementação de conector autenticado, teste de hardware, reprodução de câmera nem validação do serviço do fabricante. A matriz identifica exatamente onde faltam contratos verificáveis e impede que um Intent, clipe simulado ou link avulso seja declarado integração concluída.
 
 **Próximo passo técnico:** investigar as interfaces de interoperabilidade **atuais** e condições de licença para um fabricante de cada vez, começando pelo mais documentado, sem alterar o produto antes de existir um contrato verificável. Se nenhum contrato for localizável, registrar bloqueio por fabricante e avançar com outro alvo ativo em vez de repetir build do launcher. Manter PR #2 e PR #3 em rascunho e sem merge/release.
+
+## Atualização de fontes externas — 25/11/2026
+
+Triagem documental de interoperabilidade, NÃO integração executada nem homologação. Foram lidos README, metadados e informações de licença dos repositórios públicos abaixo. Não houve autenticação, câmera real, captura de tráfego, compilação ou cópia de implementação de terceiros.
+
+| Caminho candidato | Evidência e limites reais | Decisão para o Enterprise Cams |
+| --- | --- | --- |
+| iCSee/XM — [xmplayer](https://github.com/ddev-io/icsee-p2p-camera-client) | Cliente Python independente declara login pela conta iCSee/XM ou Cloud ID + credenciais da câmera, descoberta e vídeo ao vivo verificados em uma câmera-alvo no Windows. Os serviços do fabricante continuam envolvidos; compatibilidade geral, Android e execução neste projeto não foram testados. Metadados do GitHub não informam licença e não se viu arquivo LICENSE na árvore. README relata credenciais em texto simples em arquivos locais. | Pista funcional com potencial para preservar a nuvem iCSee, mas licença, autorização, API estável, compatibilidade de conta e armazenamento seguro precisam ser resolvidos ANTES de portar código. |
+| Yoosee/Gwell — [TianEye](https://github.com/andrewloable/TianEye) | Projeto MIT pausado em 07/10/2026, sem código executável, segundo README. Análise estática e uma câmera ensaiada: RTSP/ONVIF local em determinado firmware. Em IoTVideo mais recente, PTZ e reprodução SD nativa dependem de sessão P2P com token da nuvem. Proposta de bloquear a nuvem contradiz preservação de serviços contratados. | Referência de protocolo e impeditivos, não conector pronto. Não bloquear egress, desvincular câmera nem substituir o serviço Yoosee. |
+| Yoosee/Gwell — [GWP2PSDK](https://github.com/GWTimes/GWP2PSDK) | Biblioteca P2P com wrapper Objective-C para iOS, último push registrado em 2022; não há licença declarada nos metadados. | Não comprova integração Android contemporânea, autorização de redistribuição nem compatibilidade com IoTVideo atual; não incorporar binários ou exemplos. |
+| V380 — [protocolo e cliente de pesquisa](https://github.com/26medias/V380-wifi-camera-reverse-engineering) | Projeto MIT com cliente Node local para família/modelo AC54 e porta TCP 8800, MJPEG; documenta uma só sessão e fraquezas relevantes no protocolo estudado. Não é API da conta/nuvem V380 Pro e não há compatibilidade universal comprovada. | Possível complemento LAN por dispositivo somente com validação, sem substituir cloud, respeitando as fraquezas de segurança observadas. |
+| V380 — [V380-SDK](https://github.com/brusdev/V380-SDK) | Exemplo Java de SDK Macrovideo com histórico antigo (último push registrado em 2017); GitHub não informa licença. | Pista histórica, não incorporar bibliotecas nem presumir compatibilidade ou direitos de distribuição. |
+| Hilevel | Publicação do aplicativo com pacote com.sotaviz.hilevelen identificada, mas nenhum contrato público verificável de login + seleção de dispositivo + stream foi localizado nesta rodada. | Integração cloud autenticada continua BLOQUEADA até contrato/licença e hardware de validação. |
+
+### Decisão técnica após a triagem
+
+1. Investigar primeiro o contrato cloud iCSee/XM: há relato público de login, descoberta e vídeo real independente. Essa evidência é declaração dos autores do cliente e NÃO foi reproduzida aqui.
+2. Antes de qualquer porte: confirmar licença/autorização, diferenças entre login da conta e senha da câmera, suporte a múltiplos dispositivos, tratamento seguro de credenciais e preservação de serviços oficiais. Ausência de licença explícita NÃO autoriza cópia de código.
+3. Manter alternativas LAN de Yoosee/V380 separadas da integração com nuvem, sem romper associação, assinaturas ou acesso externo.
+4. Só implementar adaptador isolado por fabricante depois de obter interface e termos suficientes, com testes sintéticos de contrato e posteriores testes físicos. Não duplicar player simulado: PR #2 já contém o protótipo de reprodução.
+5. Estado: integração funcional BLOQUEADA por contrato/licença e validação em câmera; pesquisa documental CONCLUÍDA PROVISORIAMENTE para estas pistas. Próxima ação: esclarecer licença/contrato cloud iCSee/XM ou registrar bloqueio e evoluir outro repositório.
+
