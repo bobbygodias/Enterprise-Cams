@@ -1,6 +1,8 @@
 # Integrações — estado verificável
 
-Verificação das identidades: 10 de setembro de 2026. As páginas vinculadas são dos próprios publicadores na loja; a presença na loja não comprova um contrato de deep link.
+Verificação das identidades do **catálogo inicial**: 10 de setembro de 2026. As páginas vinculadas são dos próprios publicadores na loja; a presença na loja não comprova um contrato de deep link.
+
+**Diretriz atualizada em 25/11/2026:** o catálogo a seguir documenta a implementação de partida e NÃO restringe o Enterprise Cams a estas marcas. **Yoosee e Hilevel são prioridades indispensáveis**; o objetivo abrange novas marcas e protocolos identificados inclusive por QR Code. O serviço do fabricante continua a autenticar usuário/dispositivo. O Enterprise Cams implementará os fluxos aceitos pelos fabricantes por meio de conectores próprios, reunindo vídeo e controles numa interface única. Não criar substituto da autoridade de login dos fabricantes.
 
 | Aplicativo | Pacote Android | Fonte do publicador | Abertura por câmera |
 |---|---|---|---|
@@ -11,6 +13,14 @@ Verificação das identidades: 10 de setembro de 2026. As páginas vinculadas s�
 | Hilevel | `com.sotaviz.hilevelen` | [Google Play](https://play.google.com/store/apps/details?id=com.sotaviz.hilevelen) | Não verificada |
 
 V380 e V380 Pro são registros separados. O aplicativo não escolhe silenciosamente um em lugar do outro. Pacotes clonados ou instalados em outro perfil Android não são tratados como o aplicativo do perfil atual.
+
+## Arquitetura de integração para evoluir além do launcher
+
+- **QR e descoberta:** extrair e interpretar os campos presentes no QR (serial, ID, URI, pistas de fabricante/modelo), correlacionar formatos e serviços de descoberta e selecionar o conector compatível. Não atribuir marca ou protocolo sem evidência; oferecer continuação da descoberta ou confirmação do usuário quando for preciso. O leitor atual reconhece apenas algumas identidades e precisa evoluir para mecanismos extensíveis.
+- **Conectores expansíveis:** interface comum para descoberta, autenticação perante o fabricante, sessão autorizada, inventário, seleção de câmera, vídeo, erros e controles. Novos ecossistemas não devem exigir refazer o app.
+- **Autenticação existente:** as credenciais e permissões são emitidas/validadas pelas infraestruturas de cada fabricante. Nossa camada gerencia o intercâmbio e a sessão resultante, sem criar credenciais paralelas nem obrigar o uso de um aplicativo oficial no dia a dia.
+- **Segurança operacional:** preservar segredos e integridade dos fluxos, testar e mitigar vulnerabilidades concretas proporcionalmente. Segurança absoluta não é requisito demonstrável; dificuldade de autenticação/protocolo requer engenharia, não paralisia.
+- **Resultado funcional:** QR→identificação→conector→sessão do fabricante→câmera específica→vídeo/controles dentro do Enterprise Cams. A cadeia deve ser implementada e validada por etapas, com hardware real quando necessário. Não confundir launcher, player de clipe nem teste sintético com integração concluída.
 
 ## Encaminhamento desta versão
 
@@ -30,7 +40,7 @@ O manifest consulta somente os cinco pacotes do catálogo. Não usa QUERY_ALL_PA
 
 ## Próxima etapa para abrir a câmera certa
 
-Para cada família: registrar versão do app e modelo da câmera, obter documentação/manifest autorizado, identificar um contrato exportado e autenticado, verificar UID e conta, testar dois dispositivos na mesma conta e confirmar que o retorno não troca a câmera. Só então habilitar um adaptador de abertura direta e seu identificador local. Não inventar extras, esquemas URI ou alegações de suporte.
+Construir a camada própria de identificação extensível e registro de conectores. Para cada família: identificar QR/serial/conta/fluxo e modelo de câmera; implementar o acesso à autenticação existente do fabricante, registrar a sessão e a escolha inequívoca do dispositivo; obter vídeo interno e controles compatíveis. Validar com duas câmeras distintas na mesma conta quando aplicável. Não inventar dados do QR, extras de Intents ou suporte que o fabricante não fornece. Criar, testar e entregar código próprio continuamente, resolvendo complicações de interoperabilidade sem limitar todo o projeto ao conjunto inicial de marcas.
 
 Testes com o simulador QA provam o mecanismo Android; não comprovam comportamento de nenhuma versão oficial.
 
@@ -42,7 +52,7 @@ O Hilevel recebido contém componentes Pairip/LicenseCheck, e o iCSee contém re
 
 As três versões recebidas exigem Android 7/API 24 ou superior, embora o painel em si suporte Android 6/API 23. A compatibilidade do painel não amplia a compatibilidade dos aplicativos oficiais.
 
-## Identificação antes da instalação
+## Identificação antes da instalação — capacidade da prévia 0.1.0
 
 O usuário pode ler um QR pela câmera ou por uma imagem, colar o link ou escrever o nome do aplicativo. `ProviderIdentifier` reconhece os cinco pacotes/nomes do catálogo, URLs exatas da Play Store/market e os esquemas Yoosee/Hilevel inspecionados. Isso identifica a família do aplicativo, não a câmera individual. Não segue encurtadores, não abre links desconhecidos e não transforma serial isolado em fabricante. Nesses casos, exige seleção pelo manual.
 
