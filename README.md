@@ -10,7 +10,7 @@ Cada fabricante continua responsável pela **autenticação de suas contas e dis
 
 Complicações de protocolos, compatibilidade e segurança são problemas de engenharia a enfrentar. A segurança deve ser implementada por medidas proporcionais aos riscos concretos, não por promessas de 100% de segurança. Os marcos técnicos devem produzir **código funcional e testes verificáveis**, além da documentação necessária. Consulte [Escopo](docs/ESCOPO.md) e [Integrações](docs/INTEGRACOES.md).
 
-**Estado: prévia Android 0.1.0 com QR compilada; 22 testes unitários aprovados. Na última rodada concluída, cinco de sete testes de tela passaram; duas falhas eram do próprio teste/automação e receberam correções focadas. A validação atual está em execução.** O repositório começou com a licença CC0. O registro atualizado de testes e limites está em [CONTINUIDADE.md](docs/CONTINUIDADE.md).
+**Estado observado na main em 25/11/2026: prévia Android 0.1.0, com leitura QR limitada ao catálogo e encaminhamento aos aplicativos oficiais.** A branch de QA do [PR #3](https://github.com/bobbygodias/Enterprise-Cams/pull/3) teve workflow aprovado em 22/11/2026, mas não demonstra vídeo de câmera real. O [PR #2](https://github.com/bobbygodias/Enterprise-Cams/pull/2) contém player interno experimental, e o [PR #4](https://github.com/bobbygodias/Enterprise-Cams/pull/4), pesquisa de contratos. Essas branches não comprovam o objetivo final. O repositório começou com a licença CC0; veja [CONTINUIDADE.md](docs/CONTINUIDADE.md).
 
 ## O que esta versão faz
 
@@ -50,8 +50,9 @@ O workflow Android executa compilação, testes de dados, lint e testes instrume
 - [Briefing e continuidade](docs/CONTINUIDADE.md)
 - [Adaptadores e fontes](docs/INTEGRACOES.md)
 - [Análise dos APKs, incluindo XMEye](docs/ANALISE-APKS.md)
-- [Código em revisão — PR #1](https://github.com/bobbygodias/Enterprise-Cams/pull/1)
-- [Validação atual das correções](https://github.com/bobbygodias/Enterprise-Cams/actions/runs/34579130893)
+- [Player interno experimental — PR #2](https://github.com/bobbygodias/Enterprise-Cams/pull/2)
+- [QA de interface — PR #3](https://github.com/bobbygodias/Enterprise-Cams/pull/3)
+- [Pesquisa de contratos — PR #4](https://github.com/bobbygodias/Enterprise-Cams/pull/4)
 - [Escopo e evolução](docs/ESCOPO.md)
 - [Privacidade](docs/PRIVACIDADE.md)
 
