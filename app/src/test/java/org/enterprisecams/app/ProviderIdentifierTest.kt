@@ -28,6 +28,36 @@ class ProviderIdentifierTest {
         assertEquals("icsee", ProviderIdentifier.identify("com.xm.csee")?.id)
         assertEquals("yoosee", ProviderIdentifier.identify("YOOSEE")?.id)
     }
+    @Test fun arbitraryPlayStorePackageProducesUnverifiedCandidate() {
+        val pkg = "org.example.camera"
+        for (qr in listOf(
+            "https://play.google.com/store/apps/details?id=$pkg&hl=pt_BR",
+            "market://details?id=$pkg",
+        )) {
+            val candidate = requireNotNull(ProviderIdentifier.identify(qr))
+            assertEquals("package:$pkg", candidate.id)
+            assertEquals(pkg, candidate.packageName)
+            assertFalse(Providers.isCatalogued(candidate))
+            assertEquals(candidate, Providers.find(candidate.id))
+        }
+        assertEquals(Providers.find("yoosee"), ProviderIdentifier.identify("https://play.google.com/store/apps/details?id=com.yoosee"))
+    }
+
+    @Test fun candidateRequiresExactStoreLinkAndSafePackage() {
+        listOf(
+            "org.example.camera",
+            "https://evil.example/store/apps/details?id=org.example.camera",
+            "https://play.google.com/store/apps/details?id=org.example.camera&id=org.example.other",
+            "https://play.google.com/store/apps/details?id=org.example.camera%2Fbad",
+            "https://play.google.com/store/apps/details?id=org..camera",
+            "https://play.google.com/store/apps/details?id=org.example.camera%40evil",
+            "market://details?id=org.example.camera%0A",
+            "https://play.google.com/store/apps/details?id=org.example.camera#fragment",
+        ).forEach { assertNull("Unexpected candidate: $it", ProviderIdentifier.identify(it)) }
+        assertNull(Providers.find("package:org..camera"))
+        assertNull(Providers.find("package:com.yoosee"))
+    }
+
     @Test fun unknownSerialOrCameraMarketingNameDoesNotGuessAnApp() {
         listOf("123456789", "TowerCam", "WiFi Smart Camera", "ICSee compatible maybe", "WIFI:T:WPA;S:camera;P:secret;;").forEach {
             assertNull(ProviderIdentifier.identify(it))
