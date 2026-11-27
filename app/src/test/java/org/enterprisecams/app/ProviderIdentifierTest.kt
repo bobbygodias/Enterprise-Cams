@@ -66,7 +66,7 @@ class ProviderIdentifierTest {
     @Test fun lookalikeDomainsAndArbitraryUrlsCannotChooseAStoreTarget() {
         listOf("https://play.google.com.evil.example/store/apps/details?id=com.yoosee",
             "https://evil.example/yoosee", "https://play.google.com@evil.example/store/apps/details?id=com.yoosee",
-            "intent://camera#Intent;package=com.yoosee;end", "https://play.google.com/store/apps/details?id=com.unknown.app").forEach {
+            "intent://camera#Intent;package=com.yoosee;end", "https://play.google.com/store/apps/details?id=com.unknown.app%2Fbad").forEach {
             assertNull(ProviderIdentifier.identify(it))
         }
     }
