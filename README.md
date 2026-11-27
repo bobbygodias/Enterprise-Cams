@@ -15,8 +15,8 @@ Complicações de protocolos, compatibilidade e segurança são problemas de eng
 ## O que esta versão faz
 
 - Organiza acessos por câmera/local, com busca, favoritos e edição.
-- Lê QR pela câmera ou por imagem e identifica aplicativos do catálogo por links/nomes conhecidos, com alternativa manual quando só há um serial.
-- Nesta prévia, reconhece Yoosee, iCSee, V380, V380 Pro e Hilevel instalados no mesmo perfil Android; **não é um limite da arquitetura final**.
+- Lê QR pela câmera ou por imagem; reconhece os aplicativos catalogados e, em links exatos da Play Store, registra **candidatos de pacotes externos** com validação de formato. O fabricante e a compatibilidade desses candidatos permanecem **não verificados**; um serial isolado não autoriza identificação por inferência.
+- Nesta prévia, o catálogo verificado inclui Yoosee, iCSee, V380, V380 Pro e Hilevel. A seleção de outros pacotes por QR é apenas a primeira etapa de descoberta, **não comprova conector nem streaming**, e depende de confirmação explícita da pessoa.
 - Encaminha à Play Store; se a loja não abrir, tenta sua página HTTPS no navegador.
 - Orienta a configuração da câmera no aplicativo oficial e conserva o cadastro ao sair e voltar.
 - Adiciona o acesso ao painel após confirmação do usuário e verificação de que o aplicativo está disponível.
