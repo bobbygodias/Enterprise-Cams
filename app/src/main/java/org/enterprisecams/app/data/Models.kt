@@ -20,7 +20,24 @@ object Providers {
         CameraProvider("v380pro", "V380 Pro", "com.macrovideo.v380pro"),
         CameraProvider("hilevel", "Hilevel", "com.sotaviz.hilevelen"),
     )
-    fun find(id: String): CameraProvider? = all.find { it.id == id }
+    // A Play Store QR may identify a package outside our initial catalog.
+    // This is a candidate package, NOT a verified camera vendor or a working connector.
+    private const val EXTERNAL_PREFIX = "package:"
+    private val packagePattern = Regex("[A-Za-z_][A-Za-z0-9_]*(\\.[A-Za-z_][A-Za-z0-9_]*)+")
+
+    fun fromStorePackage(packageName: String): CameraProvider? {
+        if (packageName.length !in 3..220 || !packagePattern.matches(packageName)) return null
+        return all.firstOrNull { it.packageName == packageName }
+            ?: CameraProvider(EXTERNAL_PREFIX + packageName, packageName, packageName)
+    }
+
+    fun find(id: String): CameraProvider? =
+        all.firstOrNull { it.id == id }
+            ?: if (id.startsWith(EXTERNAL_PREFIX)) {
+                fromStorePackage(id.removePrefix(EXTERNAL_PREFIX))?.takeIf { it.id == id }
+            } else null
+
+    fun isCatalogued(provider: CameraProvider): Boolean = all.any { it.id == provider.id }
 }
 
 @Serializable

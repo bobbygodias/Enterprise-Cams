@@ -79,8 +79,14 @@ class CameraFlowTest {
         rule.waitUntil(10_000) { rule.onAllNodesWithText("Entrada").fetchSemanticsNodes().isNotEmpty() }
         rule.onNodeWithText("Buscar câmera ou local").performTextInput("Não existe")
         rule.onNodeWithText("Nenhuma câmera neste filtro. Experimente outro nome ou local.").assertExists()
-        rule.onNodeWithContentDescription("Limpar busca").performScrollTo().performClick()
-        rule.waitUntil(10_000) { rule.onAllNodesWithText("Entrada").fetchSemanticsNodes().isNotEmpty() }
+        // IME animation can move the clear button while Compose's clock is idle.
+        // Close the keyboard, then verify the real clear action and resulting row.
+        androidx.test.espresso.Espresso.closeSoftKeyboard()
+        device.waitForIdle(2_000)
+        rule.onNodeWithContentDescription("Limpar busca").performScrollTo().assertIsDisplayed().performClick()
+        rule.onNodeWithText("Não existe").assertDoesNotExist()
+        rule.onNode(hasScrollToNodeAction()).performScrollToNode(hasText("Entrada"))
+        rule.onNodeWithText("Entrada").assertIsDisplayed()
         capture("03b-cleared-search")
         rule.onNode(hasScrollToNodeAction()).performScrollToNode(hasText("Entrada"))
         rule.onNodeWithContentDescription("Opções de Entrada").performClick()

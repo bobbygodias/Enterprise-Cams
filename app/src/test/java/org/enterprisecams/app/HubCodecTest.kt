@@ -24,6 +24,16 @@ class HubCodecTest {
         rejects { HubCodec.encode(HubState(cameras = listOf(entry().copy(providerId = "evil.package")))) }
         rejects { HubCodec.decode("{\"cameras\":[],\"packageName\":\"evil.package\"}") }
     }
+    @Test fun arbitraryPlayStoreCandidatePersistsAcrossBackupAndMerge() {
+        val candidate = requireNotNull(Providers.fromStorePackage("org.example.camera"))
+        val first = entry("Quintal").copy(providerId = candidate.id)
+        val state = HubState(cameras = listOf(first), draft = CameraDraft("Portão", "Casa", candidate.id, true))
+        assertEquals(state, HubCodec.decode(HubCodec.encode(state)))
+        assertEquals(1, HubCodec.merge(HubState(), state.copy(draft = null)).cameras.size)
+        rejects { HubCodec.encode(HubState(cameras = listOf(first.copy(providerId = "package:org..camera")))) }
+        rejects { HubCodec.encode(HubState(cameras = listOf(first.copy(providerId = "package:com.yoosee")))) }
+    }
+
     @Test fun rejectsBlankNamesAndControlCharacters() {
         rejects { HubCodec.encode(HubState(cameras = listOf(entry("  ")))) }
         rejects { HubCodec.encode(HubState(cameras = listOf(entry("Portão\n")))) }

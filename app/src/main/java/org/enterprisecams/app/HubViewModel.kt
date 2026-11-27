@@ -36,14 +36,20 @@ class HubViewModel(application: Application) : AndroidViewModel(application) {
         watchJob?.cancel()
         watchJob = viewModelScope.launch {
             try {
-                repository.states.collect { hub -> mutable.value = mutable.value.copy(loaded = true, hub = hub, loadError = false) }
+                repository.states.collect { hub ->
+                    mutable.value = mutable.value.copy(loaded = true, hub = hub, loadError = false)
+                    refreshApps()
+                }
             } catch (e: CancellationException) { throw e }
             catch (_: Exception) { mutable.value = mutable.value.copy(loadError = true, loaded = false) }
         }
     }
 
     fun refreshApps() {
-        mutable.value = mutable.value.copy(apps = Providers.all.associate { it.id to officialApps.availability(it) })
+        val hub = mutable.value.hub
+        val ids = hub.cameras.map { it.providerId } + listOfNotNull(hub.draft?.providerId)
+        val providers = (Providers.all + ids.mapNotNull(Providers::find)).distinctBy { it.id }
+        mutable.value = mutable.value.copy(apps = providers.associate { it.id to officialApps.availability(it) })
     }
 
     fun dismissMessage() { mutable.value = mutable.value.copy(message = null) }

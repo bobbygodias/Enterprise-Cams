@@ -132,3 +132,12 @@ Ler este MD, consultar o PR e o último resultado do workflow, conferir `git sta
 Bobby pediu explicitamente um Markdown para anexar às fontes e preservar a continuidade. Manter este registro fiel ao que foi feito, inclusive falhas e pendências, sem transformar plano em entrega.
 
 “Ninguém fica para trás. Somos soldados de honra.”
+
+
+## Continuidade de engenharia — 27/11/2026 — QR multimarcas inicial (branch de trabalho)
+
+PR #7: https://github.com/bobbygodias/Enterprise-Cams/pull/7 — branch `feat/qr-open-play-package-20261127`.
+Este incremento permite identificar um pacote Android pela URL exata da Play Store, além dos cinco originalmente catalogados; valida a gramática do identificador e persiste um ID `package:<pacote>` no cadastro e em backups. Mostra aviso de identidade não verificada antes de prosseguir. A disponibilidade de aplicativos passa a considerar candidatos do estado restaurado e a visibilidade Android usa consultas de atividades launcher, sem QUERY_ALL_PACKAGES.
+A seleção de pacote não verifica fabricante, titularidade do aplicativo nem protocolo de câmera. Nenhum fluxo de login, vídeo real ou conector proprietário está implementado aqui. Não anunciar como Enterprise Cams final.
+Testes de regressão adicionados para reconhecimento, negação de URLs/pacotes malformados, backups e compatibilidade com IDs históricos. O CI, com SDK Android configurado explicitamente, deve validar compilação, unitários, lint, APK e testes de fluxo em emulador. Consultar o commit de HEAD e os resultados atuais; não atribuir execução antiga ao código novo. Quando houver falha, ler o job e corrigir antes de entregar.
+Não mesclar mudanças não validadas; preservar as referências de identidade visual e o objetivo completo de câmeras internas. Esta seção documenta um marco intermediário, não substitui requisitos.

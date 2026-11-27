@@ -30,7 +30,7 @@ object ProviderIdentifier {
                     }
                 }
                 val ids = pairs.filter { it.first == "id" }
-                if (ids.size != 1) null else Providers.all.firstOrNull { it.packageName == ids.single().second }
+                if (ids.size != 1) null else Providers.fromStorePackage(ids.single().second)
             } else when {
                 scheme == "yoosee" && host == "share" -> Providers.find("yoosee")
                 scheme == "hilevelen" -> Providers.find("hilevel")

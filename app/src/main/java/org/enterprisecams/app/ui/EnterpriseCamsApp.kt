@@ -340,11 +340,24 @@ private fun SetupScreen(draft: CameraDraft, apps: Map<String, AppAvailability>, 
                     }
                 }
             }
+            Providers.find(providerId)?.takeIf { !Providers.isCatalogued(it) }?.let { candidate ->
+                Surface(shape = RoundedCornerShape(14.dp), color = MaterialTheme.colorScheme.secondaryContainer) {
+                    Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text("Pacote encontrado no link: ${candidate.packageName}", fontWeight = FontWeight.SemiBold)
+                        Text("Fabricante e compatibilidade ainda não verificados. Confira no manual antes de instalar ou continuar.",
+                            style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+            }
             Button(onClick = { onContinue(CameraDraft(name.trim(), location.trim(), providerId, setupStarted = true)) },
                 enabled = name.isNotBlank() && Providers.find(providerId) != null && !busy, modifier = Modifier.fillMaxWidth().heightIn(min = 54.dp)) { Text("Continuar") }
         } else {
             val provider = requireNotNull(Providers.find(draft.providerId))
             val availability = apps[provider.id] ?: AppAvailability.MISSING
+            if (!Providers.isCatalogued(provider)) {
+                Text("Pacote identificado pelo link da loja, ainda sem conector ou fabricante validado. Confirme o aplicativo antes de prosseguir.",
+                    color = MaterialTheme.colorScheme.error)
+            }
             Text(draft.name, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
             Text(listOf(draft.location, provider.name).filter { it.isNotBlank() }.joinToString(" · "), color = MaterialTheme.colorScheme.primary)
             SetupStep("1", "Configure no ${provider.name}",

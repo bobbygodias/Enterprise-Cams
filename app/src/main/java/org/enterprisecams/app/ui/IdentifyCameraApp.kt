@@ -34,7 +34,9 @@ fun IdentifyCameraApp(enabled: Boolean, onIdentified: (CameraProvider?) -> Unit)
         } else {
             input = ""
             onIdentified(provider)
-            message = "Aplicativo identificado: ${provider.name}. Confira a seleção abaixo e continue para instalar ou configurar."
+            message = if (org.enterprisecams.app.data.Providers.isCatalogued(provider))
+                "Aplicativo identificado: ${provider.name}. Confira a seleção abaixo e continue para instalar ou configurar."
+            else "Pacote encontrado no link da Play Store: ${provider.packageName}. Identidade do fabricante não verificada; confira no manual."
         }
     }
     val scanner = rememberLauncherForActivityResult(ScanContract()) { result ->
