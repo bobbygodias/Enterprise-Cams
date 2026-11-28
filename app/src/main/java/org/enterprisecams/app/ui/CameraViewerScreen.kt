@@ -39,6 +39,11 @@ import org.enterprisecams.app.data.Providers
 import org.enterprisecams.app.playback.HttpsOnlyDataSource
 import org.enterprisecams.app.playback.HttpsVideoLink
 import org.enterprisecams.app.playback.LanRtspLink
+import org.enterprisecams.app.playback.OnvifMediaClient
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /** This screen owns playback. It has no reference to OfficialApps or an external Intent. */
 @Composable
@@ -48,6 +53,7 @@ fun CameraViewerScreen(camera: CameraEntry, onOfficial: () -> Unit) {
     var source by remember(camera.id) { mutableStateOf<HttpsVideoLink?>(null) }
     var lanSource by remember(camera.id) { mutableStateOf<LanRtspLink?>(null) }
     var lanForm by remember(camera.id) { mutableStateOf(false) }
+    var onvifForm by remember(camera.id) { mutableStateOf(false) }
     var demo by remember(camera.id) { mutableStateOf(false) }
     var linkForm by remember(camera.id) { mutableStateOf(false) }
     var hls by remember(camera.id) { mutableStateOf(true) }
@@ -114,6 +120,9 @@ fun CameraViewerScreen(camera: CameraEntry, onOfficial: () -> Unit) {
         OutlinedButton(onClick = { lanForm = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 54.dp)) {
             Text("Conectar câmera RTSP na rede local")
         }
+        OutlinedButton(onClick = { onvifForm = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 54.dp)) {
+            Text("Buscar perfis ONVIF da câmera")
+        }
         OutlinedButton(onClick = onOfficial, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
             Text("Configuração oficial: $providerName")
         }
@@ -122,9 +131,63 @@ fun CameraViewerScreen(camera: CameraEntry, onOfficial: () -> Unit) {
     if (linkForm) VideoLinkDialog(onDismiss = { linkForm = false }, onPlay = { link, isHls ->
         source = link; lanSource = null; hls = isHls; demo = false; attempt++; linkForm = false
     })
+    if (onvifForm) OnvifDialog(onDismiss = { onvifForm = false }, onPlay = { link ->
+        lanSource = link; source = null; demo = false; attempt++; onvifForm = false
+    })
     if (lanForm) LanLinkDialog(onDismiss = { lanForm = false }, onPlay = { link ->
         lanSource = link; source = null; demo = false; attempt++; lanForm = false
     })
+}
+
+@Composable
+private fun OnvifDialog(onDismiss: () -> Unit, onPlay: (LanRtspLink) -> Unit) {
+    var address by remember { mutableStateOf("") }
+    var user by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var profiles by remember { mutableStateOf<List<OnvifMediaClient.Profile>>(emptyList()) }
+    var busy by remember { mutableStateOf(false) }
+    var error by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    fun execute(profile: OnvifMediaClient.Profile? = null) {
+        if (busy) return
+        busy = true; error = false
+        scope.launch {
+            try {
+                if (profile == null) {
+                    profiles = withContext(Dispatchers.IO) { OnvifMediaClient.listProfiles(address, user, password) }
+                } else {
+                    val link = withContext(Dispatchers.IO) { OnvifMediaClient.resolve(address, user, password, profile) }
+                    password = ""
+                    onPlay(link)
+                }
+            } catch (e: CancellationException) { throw e }
+            catch (_: Exception) { error = true }
+            finally { busy = false }
+        }
+    }
+    AlertDialog(onDismissRequest = onDismiss, title = { Text("Serviço Media ONVIF") }, text = {
+        Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text("Informe o serviço Media HTTPS e a conta ONVIF da sua câmera. O certificado precisa ser confiável. O vídeo RTSP resultante não é criptografado: use uma rede local confiável.")
+            OutlinedTextField(address, { address = it.take(2048); profiles = emptyList(); error = false },
+                enabled = !busy, label = { Text("Endereço HTTPS do serviço Media") }, singleLine = true)
+            OutlinedTextField(user, { user = it.take(256); profiles = emptyList(); error = false },
+                enabled = !busy, label = { Text("Usuário ONVIF/RTSP") }, singleLine = true)
+            OutlinedTextField(password, { password = it.take(512); profiles = emptyList(); error = false },
+                enabled = !busy, label = { Text("Senha ONVIF/RTSP") }, singleLine = true,
+                visualTransformation = PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password))
+            if (busy) CircularProgressIndicator()
+            if (error) Text("Não foi possível consultar a câmera. Confira serviço, certificado e credenciais. Câmeras somente HTTP devem usar o endereço RTSP manual.", color = MaterialTheme.colorScheme.error)
+            for (profile in profiles) {
+                OutlinedButton(enabled = !busy, onClick = { execute(profile) }, modifier = Modifier.fillMaxWidth()) {
+                    Text(profile.name.ifBlank { profile.token })
+                }
+            }
+        }
+    }, confirmButton = {
+        TextButton(enabled = !busy && address.isNotBlank() && user.isNotBlank() && password.isNotBlank(),
+            onClick = { execute() }) { Text("Consultar perfis") }
+    }, dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } })
 }
 
 @Composable
