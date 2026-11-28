@@ -11,7 +11,7 @@ import javax.net.ssl.HttpsURLConnection
 import javax.xml.parsers.DocumentBuilderFactory
 import org.w3c.dom.Element
 
-/** ONVIF Media 1, owner-supplied HTTPS endpoint; normal TLS, no redirect or discovery scan. */
+/** ONVIF Media 1 for a private-LAN endpoint explicitly chosen by the owner. */
 object OnvifMediaClient {
     private const val SOAP = "http://www.w3.org/2003/05/soap-envelope"
     private const val MEDIA = "http://www.onvif.org/ver10/media/wsdl"
@@ -24,9 +24,9 @@ object OnvifMediaClient {
 
     fun endpoint(input: String): URI {
         val uri = try { URI(input.trim()) } catch (_: Exception) { throw IllegalArgumentException("Endereço ONVIF inválido.") }
-        require(uri.scheme == "https" && uri.rawUserInfo == null && uri.rawFragment == null &&
+        require(uri.scheme in setOf("https", "http") && uri.rawUserInfo == null && uri.rawFragment == null &&
             uri.rawQuery == null && !uri.rawPath.isNullOrBlank() && (uri.port == -1 || uri.port in 1..65535)) {
-            "Informe o endereço HTTPS do serviço Media ONVIF."
+            "Informe o serviço Media ONVIF HTTP ou HTTPS de sua câmera local."
         }
         LanRtspLink.parse("rtsp://" + uri.host + "/validate")
         return uri
@@ -96,6 +96,7 @@ object OnvifMediaClient {
     private fun request(endpoint: URI, operation: String, body: String, user: String, password: String): ByteArray {
         val nonce = ByteArray(20).also { SecureRandom().nextBytes(it) }
         val payload = envelope(body, user, password, nonce, Instant.now().toString()).toByteArray(Charsets.UTF_8)
+        if (endpoint.scheme == "http") return OnvifLocalHttp.post(endpoint, payload)
         val connection = endpoint.toURL().openConnection(Proxy.NO_PROXY) as HttpsURLConnection
         try {
             connection.instanceFollowRedirects = false
