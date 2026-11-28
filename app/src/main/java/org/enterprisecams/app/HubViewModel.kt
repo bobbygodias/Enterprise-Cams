@@ -73,9 +73,9 @@ class HubViewModel(application: Application) : AndroidViewModel(application) {
     fun saveDraft(draft: CameraDraft) = mutate { repository.update { it.copy(draft = draft) } }
     fun discardDraft() = mutate { repository.update { it.copy(draft = null) } }
 
-    fun finishDraft() {
+    fun finishDraft(requireOfficialApp: Boolean = true) {
         val provider = mutable.value.hub.draft?.providerId?.let(Providers::find) ?: return
-        if (officialApps.availability(provider) != AppAvailability.READY) {
+        if (requireOfficialApp && officialApps.availability(provider) != AppAvailability.READY) {
             refreshApps()
             message("Instale e habilite ${provider.name} para concluir o cadastro.")
             return

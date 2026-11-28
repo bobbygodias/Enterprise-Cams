@@ -141,3 +141,7 @@ Este incremento permite identificar um pacote Android pela URL exata da Play Sto
 A seleção de pacote não verifica fabricante, titularidade do aplicativo nem protocolo de câmera. Nenhum fluxo de login, vídeo real ou conector proprietário está implementado aqui. Não anunciar como Enterprise Cams final.
 Testes de regressão adicionados para reconhecimento, negação de URLs/pacotes malformados, backups e compatibilidade com IDs históricos. O CI, com SDK Android configurado explicitamente, deve validar compilação, unitários, lint, APK e testes de fluxo em emulador. Consultar o commit de HEAD e os resultados atuais; não atribuir execução antiga ao código novo. Quando houver falha, ler o job e corrigir antes de entregar.
 Não mesclar mudanças não validadas; preservar as referências de identidade visual e o objetivo completo de câmeras internas. Esta seção documenta um marco intermediário, não substitui requisitos.
+
+## 28/11/2026 — integração do visualizador à descoberta QR
+
+Porta o visualizador Media3 da PR #2 para a base com QR aberto da PR #7, mantendo dados/identidade do catálogo, links HTTPS temporários na interface de release, configuração oficial por ação explícita e cadastro sem confirmação do aplicativo oficial. Clipe local apenas debug; nenhum vídeo físico ou autenticação de Yoosee/Hilevel validado. Testes de interface preservam configuração oficial e adicionam navegação interna, rejeição HTTP e cadastro sem app. Sem release; CI necessário. Próximo marco: conector autenticado real, inventário e vídeo da câmera escolhida.
