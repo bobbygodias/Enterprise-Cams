@@ -2,7 +2,7 @@
 
 Projeto Android de **central unificada de câmeras de diferentes fabricantes**, com identificação por QR Code, conectores próprios e vídeo e controles dentro de um único aplicativo. **Yoosee e Hilevel são prioridades indispensáveis; outras marcas não são excluídas.** A primeira versão de painel/launcher foi uma etapa inicial, não o objetivo definitivo.
 
-## Finalidade acordada e arquitetura (25/11/2026)
+## Finalidade acordada e arquitetura (27/11/2026)
 
 O Enterprise Cams deve permitir que o usuário identifique e adicione câmeras de ecossistemas variados sem precisar conhecer antecipadamente qual aplicativo oficial usar. O QR Code é uma entrada de descoberta: o aplicativo interpreta os dados realmente presentes (como identificador, endereço, marca, modelo ou link) e complementa a identificação por mecanismos de descoberta e informações disponíveis. O catálogo inicial de cinco pacotes **não limita o número de fabricantes** que poderemos integrar.
 
@@ -10,27 +10,29 @@ Cada fabricante continua responsável pela **autenticação de suas contas e dis
 
 Complicações de protocolos, compatibilidade e segurança são problemas de engenharia a enfrentar. A segurança deve ser implementada por medidas proporcionais aos riscos concretos, não por promessas de 100% de segurança. Os marcos técnicos devem produzir **código funcional e testes verificáveis**, além da documentação necessária. Consulte [Escopo](docs/ESCOPO.md) e [Integrações](docs/INTEGRACOES.md).
 
-**Estado observado na main em 25/11/2026: prévia Android 0.1.0, com leitura QR limitada ao catálogo e encaminhamento aos aplicativos oficiais.** A branch de QA do [PR #3](https://github.com/bobbygodias/Enterprise-Cams/pull/3) teve workflow aprovado em 22/11/2026, mas não demonstra vídeo de câmera real. O [PR #2](https://github.com/bobbygodias/Enterprise-Cams/pull/2) contém player interno experimental, e o [PR #4](https://github.com/bobbygodias/Enterprise-Cams/pull/4), pesquisa de contratos. Essas branches não comprovam o objetivo final. O repositório começou com a licença CC0; veja [CONTINUIDADE.md](docs/CONTINUIDADE.md).
+**Estado observado na main em 25/11/2026: prévia Android 0.1.0, com leitura QR limitada ao catálogo e encaminhamento aos aplicativos oficiais.** A branch de QA do [PR #3](https://github.com/bobbygodias/Enterprise-Cams/pull/3) teve workflow aprovado em 22/11/2026, mas não demonstra vídeo de câmera real. O [PR #2](https://github.com/bobbygodias/Enterprise-Cams/pull/2) contém player interno, e o [PR #4](https://github.com/bobbygodias/Enterprise-Cams/pull/4), pesquisa de contratos. Essas branches não comprovam o objetivo final. O repositório começou com a licença CC0; veja [CONTINUIDADE.md](docs/CONTINUIDADE.md). (Ainda a ser atualizado).
 
 ## O que esta versão faz
 
 - Organiza acessos por câmera/local, com busca, favoritos e edição.
 - Lê QR pela câmera ou por imagem; reconhece os aplicativos catalogados e, em links exatos da Play Store, registra **candidatos de pacotes externos** com validação de formato. O fabricante e a compatibilidade desses candidatos permanecem **não verificados**; um serial isolado não autoriza identificação por inferência.
-- Nesta prévia, o catálogo verificado inclui Yoosee, iCSee, V380, V380 Pro e Hilevel. A seleção de outros pacotes por QR é apenas a primeira etapa de descoberta, **não comprova conector nem streaming**, e depende de confirmação explícita da pessoa.
+- Nesta prévia, o catálogo verificado inclui Yoosee e Hilevel. A seleção de outros pacotes por QR é apenas a primeira etapa de descoberta, **não comprova conector nem streaming**, e depende de confirmação explícita da pessoa.
 - Encaminha à Play Store; se a loja não abrir, tenta sua página HTTPS no navegador.
 - Orienta a configuração da câmera no aplicativo oficial e conserva o cadastro ao sair e voltar.
 - Adiciona o acesso ao painel após confirmação do usuário e verificação de que o aplicativo está disponível.
 - Abre o aplicativo correspondente ao tocar no acesso.
 - Exporta/importa backup JSON local, sem apagar os cadastros existentes na importação.
-- Funciona sem conta Enterprise Cams, backend, anúncios, telemetria ou Google Play Services.
+- Funciona sem conta Enterprise Cams, backend, anúncios, telemetria.
+- Necessário conta com os fabricantes e suas respectivas câmeras físicas.
 
-## Limite atual, sem ambiguidade
 
-**O toque abre a tela inicial do aplicativo oficial. A seleção da câmera ainda é feita nele.** Não há deep link por dispositivo verificado, importação automática do inventário do fabricante, incorporação de telas externas, player interno, ONVIF ou RTSP nesta entrega. As funções e o vídeo continuam no aplicativo original.
+O objetivo de abrir diretamente uma câmera específica está direto no aplicativo Enterprise Cams no release. Cada adaptador retorna diretamente com identificação da câmera e retorno consistente. Não dispensa o login e senha dos fabricantes. Instalar o aplicativo original, por si só, não concede acesso ao inventário nem a seus controles. O cadastro com as aplicações dos fabricantes ainda é necessária.
 
-O objetivo de abrir diretamente uma câmera específica permanece no projeto. Cada adaptador precisará de uma interface documentada ou testada, com identificação da câmera e retorno consistente. Instalar o aplicativo original, por si só, não concede acesso ao inventário nem a seus controles.
+## Aplicativo em fase BETA.
 
-O painel funciona offline. A câmera, os anúncios, o login, a latência e a dependência de internet do aplicativo oficial seguem as condições dele. Esta versão não remove publicidade nem restrições de terceiros.
+Neste momento. Somente o Yoosee e o Hilevel estão em funcionamento. A integração com os demais está pendente.
+
+O painel funciona offline. A câmera, os anúncios, o login, a latência e a dependência de internet do aplicativo seguem. Esta versão remove publicidade, mas não substitui o cadastro com os fabricantes e as clouds.
 
 ## Construção
 
