@@ -22,6 +22,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalContext
+import org.enterprisecams.app.cloud.AccountController
+import org.enterprisecams.app.cloud.CloudConnectors
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -47,6 +50,9 @@ import org.enterprisecams.app.platform.AppAvailability
 @Composable
 fun EnterpriseCamsApp(vm: HubViewModel) {
     val ui by vm.ui.collectAsStateWithLifecycle()
+    val context = LocalContext.current.applicationContext
+    val accounts = remember(context) { AccountController(CloudConnectors.load(context)) }
+    var accountsOpen by remember { mutableStateOf(false) }
     val owner = LocalLifecycleOwner.current
     val scope = rememberCoroutineScope()
     val snackbar = remember { SnackbarHostState() }
@@ -106,6 +112,8 @@ fun EnterpriseCamsApp(vm: HubViewModel) {
                     if (!inSetup && selectedCamera == null) {
                         IconButton(onClick = { backupMenu = true }) { Icon(Icons.Default.MoreVert, "Opções do painel") }
                         DropdownMenu(expanded = backupMenu, onDismissRequest = { backupMenu = false }) {
+                            DropdownMenuItem(text = { Text("Contas Yoosee e Hilevel") },
+                                onClick = { backupMenu = false; accountsOpen = true })
                             DropdownMenuItem(text = { Text("Salvar backup") }, enabled = ui.loaded && !ui.busy,
                                 onClick = { backupMenu = false; backupInfo = true })
                             DropdownMenuItem(text = { Text("Importar backup") }, enabled = ui.loaded && !ui.busy,
@@ -159,6 +167,7 @@ fun EnterpriseCamsApp(vm: HubViewModel) {
         }
     }
 
+    if (accountsOpen) CloudAccountsDialog(accounts, onDismiss = { accountsOpen = false })
     missingApp?.let { provider ->
         AlertDialog(onDismissRequest = { missingApp = null }, title = { Text("Instalar ${provider.name}") },
             text = { Text("O acesso à câmera está salvo. Instale o aplicativo oficial e depois volte ao painel.") },
