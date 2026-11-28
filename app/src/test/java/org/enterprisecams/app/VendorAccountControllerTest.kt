@@ -61,7 +61,7 @@ class VendorAccountControllerTest {
     @Test fun inventoryFailureClosesSessionAndRejectsBadInput() = runBlocking {
         val y = Driver(CloudVendor.YOOSEE)
         val controller = AccountController(listOf(y))
-        assertEquals(AccountResult.InvalidCredentials, controller.signIn(y.vendor, "bad", "pw"))
+        assertEquals(AccountResult.InvalidCredentials, controller.signIn(y.vendor, "bad account", "pw"))
         assertEquals(0,y.loginCount)
         y.failInventory = true
         assertEquals(AccountResult.Failed, controller.signIn(y.vendor, "a@example.org", "pw"))
@@ -77,6 +77,16 @@ class VendorAccountControllerTest {
         assertEquals(AccountResult.Failed, controller.refresh(y.vendor))
         assertEquals(AccountResult.SignedOut, controller.refresh(y.vendor))
         assertEquals(1,y.logoutCount)
+    }
+
+    @Test fun registeredPhoneOrDeviceIdIsNotBlockedBeforeManufacturerValidation() = runBlocking {
+        val driver = Driver(CloudVendor.YOOSEE)
+        val controller = AccountController(listOf(driver))
+        assertTrue(controller.signIn(driver.vendor, "55-62912345678", "password") is AccountResult.Connected)
+        assertTrue(controller.signIn(driver.vendor, "123456789", "password") is AccountResult.Connected)
+        assertEquals(2, driver.loginCount)
+        assertEquals(AccountResult.InvalidCredentials,
+            controller.signIn(driver.vendor, "invalid identifier", "password"))
     }
 
     @Test fun inventoryMustAuthorizeCameraBeforeVideoRequest() = runBlocking {
