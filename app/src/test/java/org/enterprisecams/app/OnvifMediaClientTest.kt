@@ -38,10 +38,11 @@ class OnvifMediaClientTest {
     }
 
     @Test fun rejectsUnsafeEndpointAndCrossDeviceStream() {
-        listOf("http://192.168.1.20/media", "https://8.8.8.8/media",
+        listOf("http://8.8.8.8/media", "https://8.8.8.8/media",
             "https://user:pw@192.168.1.20/media", "https://192.168.1.20/media#frag").forEach {
             assertTrue(runCatching { OnvifMediaClient.endpoint(it) }.isFailure)
         }
+        assertEquals("http", OnvifMediaClient.endpoint("http://192.168.1.20/onvif/media_service").scheme)
         for (url in listOf("rtsp://192.168.1.21/live", "rtsp://8.8.8.8/live", "rtsp://other:pw@192.168.1.20/live")) {
             assertTrue(runCatching { OnvifMediaClient.stream(response("<t:Uri>$url</t:Uri>"), endpoint, "owner", "secret") }.isFailure)
         }
