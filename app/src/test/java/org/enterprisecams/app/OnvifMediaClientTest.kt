@@ -48,6 +48,20 @@ class OnvifMediaClientTest {
         }
     }
 
+    @Test fun resolvesMediaServiceFromDeviceCapabilitiesWithoutCrossingHosts() {
+        val capabilities = response(
+            """<m:GetCapabilitiesResponse><t:Media>""" +
+            """<t:XAddr>http://192.168.1.20/onvif/media_service</t:XAddr>""" +
+            """</t:Media></m:GetCapabilitiesResponse>""")
+        assertEquals("http://192.168.1.20/onvif/media_service",
+            OnvifMediaClient.mediaEndpoint(capabilities, endpoint).toString())
+        val hostile = response(
+            """<m:GetCapabilitiesResponse><t:Media>""" +
+            """<t:XAddr>http://192.168.1.21/onvif/media_service</t:XAddr>""" +
+            """</t:Media></m:GetCapabilitiesResponse>""")
+        assertTrue(runCatching { OnvifMediaClient.mediaEndpoint(hostile, endpoint) }.isFailure)
+    }
+
     @Test fun rejectsDtdAndSoapFault() {
         assertTrue(runCatching { OnvifMediaClient.profiles(
             "<!DOCTYPE x [<!ENTITY y SYSTEM 'file:///etc/passwd'>]><x>&y;</x>".toByteArray()) }.isFailure)
