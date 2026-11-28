@@ -93,6 +93,33 @@ class VendorAccountControllerTest {
         assertEquals(listOf(CloudVendor.HILEVEL), onlyH.map { it.vendor })
     }
 
+    @Test fun vendorPortsDoNotAssumeOnePrivateApiVersionOrEmailOnlyLogin() = runBlocking {
+        val y = object : YooseeAccountApi {
+            override suspend fun login(accountIdentifier: String, password: String): VendorSession {
+                assertEquals("123456789", accountIdentifier)
+                return VendorSession(CloudVendor.YOOSEE, accountIdentifier, "yoosee-test")
+            }
+            override suspend fun listDevices(session: VendorSession): List<RemoteCamera> =
+                listOf(RemoteCamera("y-1", "Yoosee Camera"))
+            override suspend fun close(session: VendorSession) = Unit
+        }
+        val h = object : HilevelAccountApi {
+            override suspend fun login(email: String, password: String): VendorSession {
+                assertEquals("55-62912345678", email)
+                return VendorSession(CloudVendor.HILEVEL, email, "hilevel-test")
+            }
+            override suspend fun listDevices(session: VendorSession): List<RemoteCamera> =
+                listOf(RemoteCamera("h-1", "Hilevel Camera"))
+            override suspend fun close(session: VendorSession) = Unit
+        }
+        val controller = AccountController(listOf(YooseeConnector(y), HilevelConnector(h)))
+        assertEquals("y-1", ((controller.signIn(CloudVendor.YOOSEE, "123456789", "secret")
+            as AccountResult.Connected).cameras.single().id))
+        assertEquals("h-1", ((controller.signIn(CloudVendor.HILEVEL, "55-62912345678", "secret")
+            as AccountResult.Connected).cameras.single().id))
+        assertEquals(CameraSourceResult.NotSupported, controller.openCamera(CloudVendor.HILEVEL, "h-1"))
+    }
+
     @Test fun registeredPhoneOrDeviceIdIsNotBlockedBeforeManufacturerValidation() = runBlocking {
         val driver = Driver(CloudVendor.YOOSEE)
         val controller = AccountController(listOf(driver))
