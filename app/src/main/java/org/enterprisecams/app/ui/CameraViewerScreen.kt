@@ -288,7 +288,7 @@ private fun VideoLinkDialog(onDismiss: () -> Unit, onPlay: (HttpsVideoLink, Bool
 
 @androidx.annotation.OptIn(markerClass = [UnstableApi::class])
 @Composable
-private fun InternalVideoPlayer(source: HttpsVideoLink?, lanSource: LanRtspLink?, hls: Boolean, demo: Boolean, onRetry: () -> Unit) {
+internal fun InternalVideoPlayer(source: HttpsVideoLink?, lanSource: LanRtspLink?, hls: Boolean, demo: Boolean, onRetry: () -> Unit) {
     val context = LocalContext.current
     var firstFrame by remember { mutableStateOf(false) }
     var buffering by remember { mutableStateOf(true) }
