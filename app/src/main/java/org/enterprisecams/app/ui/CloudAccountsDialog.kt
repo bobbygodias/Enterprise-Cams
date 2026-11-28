@@ -128,8 +128,9 @@ fun CloudAccountsDialog(controller: AccountController, onDismiss: () -> Unit) {
                         }
                         else -> {
                             OutlinedTextField(email, { email = it.take(254) }, enabled = !busy,
-                                label = { Text("E-mail da conta") }, singleLine = true,
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                                label = { Text("Conta registrada no fabricante") }, singleLine = true,
+                                supportingText = { Text("Use o e-mail, telefone ou identificador aceito pelo fabricante.") },
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
                                 modifier = Modifier.fillMaxWidth())
                             OutlinedTextField(password, { password = it.take(1024) }, enabled = !busy,
                                 label = { Text("Senha da conta") }, singleLine = true,
