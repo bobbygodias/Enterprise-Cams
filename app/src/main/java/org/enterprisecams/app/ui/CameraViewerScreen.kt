@@ -147,6 +147,7 @@ private fun OnvifDialog(onDismiss: () -> Unit, onPlay: (LanRtspLink) -> Unit) {
     var user by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var profiles by remember { mutableStateOf<List<OnvifMediaClient.Profile>>(emptyList()) }
+    var mediaAddress by remember { mutableStateOf<String?>(null) }
     var busy by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf(false) }
     var discoveryError by remember { mutableStateOf<String?>(null) }
@@ -170,9 +171,20 @@ private fun OnvifDialog(onDismiss: () -> Unit, onPlay: (LanRtspLink) -> Unit) {
         scope.launch {
             try {
                 if (profile == null) {
-                    profiles = withContext(Dispatchers.IO) { OnvifMediaClient.listProfiles(address, user, password) }
+                    val resolved = withContext(Dispatchers.IO) {
+                        try {
+                            address to OnvifMediaClient.listProfiles(address, user, password)
+                        } catch (e: CancellationException) { throw e }
+                        catch (_: Exception) {
+                            // A WS-Discovery XAddr normally addresses Device, not Media.
+                            val target = OnvifMediaClient.mediaAddress(address, user, password)
+                            target to OnvifMediaClient.listProfiles(target, user, password)
+                        }
+                    }
+                    mediaAddress = resolved.first
+                    profiles = resolved.second
                 } else {
-                    val link = withContext(Dispatchers.IO) { OnvifMediaClient.resolve(address, user, password, profile) }
+                    val link = withContext(Dispatchers.IO) { OnvifMediaClient.resolve(mediaAddress ?: address, user, password, profile) }
                     password = ""
                     onPlay(link)
                 }
@@ -189,11 +201,11 @@ private fun OnvifDialog(onDismiss: () -> Unit, onPlay: (LanRtspLink) -> Unit) {
             }
             discoveryError?.let { Text(it, color = MaterialTheme.colorScheme.onSurfaceVariant) }
             discovered.forEach { candidate ->
-                TextButton(enabled = !busy, onClick = { address = candidate; profiles = emptyList(); error = false }) {
+                TextButton(enabled = !busy, onClick = { address = candidate; mediaAddress = null; profiles = emptyList(); error = false }) {
                     Text(candidate)
                 }
             }
-            OutlinedTextField(address, { address = it.take(2048); profiles = emptyList(); error = false },
+            OutlinedTextField(address, { address = it.take(2048); mediaAddress = null; profiles = emptyList(); error = false },
                 enabled = !busy, label = { Text("Serviço Media ONVIF HTTP/HTTPS (IP privado)") }, singleLine = true)
             OutlinedTextField(user, { user = it.take(256); profiles = emptyList(); error = false },
                 enabled = !busy, label = { Text("Usuário ONVIF/RTSP") }, singleLine = true)
