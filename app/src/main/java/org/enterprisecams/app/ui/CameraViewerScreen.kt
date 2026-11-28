@@ -40,6 +40,7 @@ import org.enterprisecams.app.playback.HttpsOnlyDataSource
 import org.enterprisecams.app.playback.HttpsVideoLink
 import org.enterprisecams.app.playback.LanRtspLink
 import org.enterprisecams.app.playback.OnvifMediaClient
+import org.enterprisecams.app.playback.OnvifDiscovery
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
@@ -141,22 +142,49 @@ fun CameraViewerScreen(camera: CameraEntry, onOfficial: () -> Unit) {
 
 @Composable
 private fun OnvifDialog(onDismiss: () -> Unit, onPlay: (LanRtspLink) -> Unit) {
+    val context = LocalContext.current
     var address by remember { mutableStateOf("") }
     var user by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var profiles by remember { mutableStateOf<List<OnvifMediaClient.Profile>>(emptyList()) }
+    var mediaAddress by remember { mutableStateOf<String?>(null) }
     var busy by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf(false) }
+    var discoveryError by remember { mutableStateOf<String?>(null) }
+    var discovered by remember { mutableStateOf<List<String>>(emptyList()) }
     val scope = rememberCoroutineScope()
+    fun scanLan() {
+        if (busy) return
+        busy = true; discoveryError = null; discovered = emptyList()
+        scope.launch {
+            try {
+                discovered = withContext(Dispatchers.IO) { OnvifDiscovery.discover(context) }
+                if (discovered.isEmpty()) discoveryError = "Nenhuma câmera respondeu. Verifique o Wi-Fi e se a câmera oferece ONVIF/WS-Discovery."
+            } catch (e: CancellationException) { throw e }
+            catch (_: Exception) { discoveryError = "Não foi possível fazer a descoberta nesta rede. Informe o endereço manualmente." }
+            finally { busy = false }
+        }
+    }
     fun execute(profile: OnvifMediaClient.Profile? = null) {
         if (busy) return
         busy = true; error = false
         scope.launch {
             try {
                 if (profile == null) {
-                    profiles = withContext(Dispatchers.IO) { OnvifMediaClient.listProfiles(address, user, password) }
+                    val resolved = withContext(Dispatchers.IO) {
+                        try {
+                            address to OnvifMediaClient.listProfiles(address, user, password)
+                        } catch (e: CancellationException) { throw e }
+                        catch (_: Exception) {
+                            // A WS-Discovery XAddr normally addresses Device, not Media.
+                            val target = OnvifMediaClient.mediaAddress(address, user, password)
+                            target to OnvifMediaClient.listProfiles(target, user, password)
+                        }
+                    }
+                    mediaAddress = resolved.first
+                    profiles = resolved.second
                 } else {
-                    val link = withContext(Dispatchers.IO) { OnvifMediaClient.resolve(address, user, password, profile) }
+                    val link = withContext(Dispatchers.IO) { OnvifMediaClient.resolve(mediaAddress ?: address, user, password, profile) }
                     password = ""
                     onPlay(link)
                 }
@@ -167,9 +195,18 @@ private fun OnvifDialog(onDismiss: () -> Unit, onPlay: (LanRtspLink) -> Unit) {
     }
     AlertDialog(onDismissRequest = onDismiss, title = { Text("Serviço Media ONVIF") }, text = {
         Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text("Informe o serviço Media HTTPS e a conta ONVIF da sua câmera. O certificado precisa ser confiável. O vídeo RTSP resultante não é criptografado: use uma rede local confiável.")
-            OutlinedTextField(address, { address = it.take(2048); profiles = emptyList(); error = false },
-                enabled = !busy, label = { Text("Endereço HTTPS do serviço Media") }, singleLine = true)
+            Text("Descubra câmeras ONVIF na rede ou informe o endereço do serviço Media. HTTPS exige certificado confiável; HTTP e o vídeo RTSP não são criptografados. Utilize apenas sua rede local confiável.")
+            OutlinedButton(enabled = !busy, onClick = { scanLan() }, modifier = Modifier.fillMaxWidth()) {
+                Text("Descobrir câmeras ONVIF no Wi-Fi")
+            }
+            discoveryError?.let { Text(it, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+            discovered.forEach { candidate ->
+                TextButton(enabled = !busy, onClick = { address = candidate; mediaAddress = null; profiles = emptyList(); error = false }) {
+                    Text(candidate)
+                }
+            }
+            OutlinedTextField(address, { address = it.take(2048); mediaAddress = null; profiles = emptyList(); error = false },
+                enabled = !busy, label = { Text("Serviço Media ONVIF HTTP/HTTPS (IP privado)") }, singleLine = true)
             OutlinedTextField(user, { user = it.take(256); profiles = emptyList(); error = false },
                 enabled = !busy, label = { Text("Usuário ONVIF/RTSP") }, singleLine = true)
             OutlinedTextField(password, { password = it.take(512); profiles = emptyList(); error = false },
@@ -177,7 +214,7 @@ private fun OnvifDialog(onDismiss: () -> Unit, onPlay: (LanRtspLink) -> Unit) {
                 visualTransformation = PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password))
             if (busy) CircularProgressIndicator()
-            if (error) Text("Não foi possível consultar a câmera. Confira serviço, certificado e credenciais. Câmeras somente HTTP devem usar o endereço RTSP manual.", color = MaterialTheme.colorScheme.error)
+            if (error) Text("Falha ao consultar a câmera. Confira o serviço Media, usuário e senha próprios da câmera. No HTTPS, confira também o certificado.", color = MaterialTheme.colorScheme.error)
             for (profile in profiles) {
                 OutlinedButton(enabled = !busy, onClick = { execute(profile) }, modifier = Modifier.fillMaxWidth()) {
                     Text(profile.name.ifBlank { profile.token })

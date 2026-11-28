@@ -3,6 +3,9 @@
     xmlns:tools="http://schemas.android.com/tools">
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Explicit user-triggered ONVIF WS-Discovery multicast on local Wi-Fi only. -->
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
     <uses-feature android:name="android.hardware.camera" android:required="false" tools:replace="android:required" />
     <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
     <!-- Only the camera ecosystems used by this app are queried. -->

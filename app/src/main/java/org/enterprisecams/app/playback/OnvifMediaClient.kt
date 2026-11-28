@@ -11,10 +11,11 @@ import javax.net.ssl.HttpsURLConnection
 import javax.xml.parsers.DocumentBuilderFactory
 import org.w3c.dom.Element
 
-/** ONVIF Media 1, owner-supplied HTTPS endpoint; normal TLS, no redirect or discovery scan. */
+/** ONVIF Media 1 for a private-LAN endpoint explicitly chosen by the owner. */
 object OnvifMediaClient {
     private const val SOAP = "http://www.w3.org/2003/05/soap-envelope"
     private const val MEDIA = "http://www.onvif.org/ver10/media/wsdl"
+    private const val DEVICE = "http://www.onvif.org/ver10/device/wsdl"
     private const val SCHEMA = "http://www.onvif.org/ver10/schema"
     private const val WSSE = "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd"
     private const val WSU = "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd"
@@ -24,9 +25,9 @@ object OnvifMediaClient {
 
     fun endpoint(input: String): URI {
         val uri = try { URI(input.trim()) } catch (_: Exception) { throw IllegalArgumentException("Endereço ONVIF inválido.") }
-        require(uri.scheme == "https" && uri.rawUserInfo == null && uri.rawFragment == null &&
+        require(uri.scheme in setOf("https", "http") && uri.rawUserInfo == null && uri.rawFragment == null &&
             uri.rawQuery == null && !uri.rawPath.isNullOrBlank() && (uri.port == -1 || uri.port in 1..65535)) {
-            "Informe o endereço HTTPS do serviço Media ONVIF."
+            "Informe o serviço Media ONVIF HTTP ou HTTPS de sua câmera local."
         }
         LanRtspLink.parse("rtsp://" + uri.host + "/validate")
         return uri
@@ -42,7 +43,7 @@ object OnvifMediaClient {
         val digest = MessageDigest.getInstance("SHA-1").digest(nonce +
             created.toByteArray(Charsets.UTF_8) + password.toByteArray(Charsets.UTF_8))
         val encoded = Base64.getEncoder()
-        return """<s:Envelope xmlns:s="$SOAP" xmlns:m="$MEDIA" xmlns:t="$SCHEMA" xmlns:wsse="$WSSE" xmlns:wsu="$WSU">
+        return """<s:Envelope xmlns:s="$SOAP" xmlns:m="$MEDIA" xmlns:d="$DEVICE" xmlns:t="$SCHEMA" xmlns:wsse="$WSSE" xmlns:wsu="$WSU">
             <s:Header><wsse:Security s:mustUnderstand="true"><wsse:UsernameToken>
             <wsse:Username>${escape(user)}</wsse:Username>
             <wsse:Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordDigest">${encoded.encodeToString(digest)}</wsse:Password>
@@ -93,9 +94,11 @@ object OnvifMediaClient {
             (raw.rawQuery?.let { "?$it" } ?: ""))
     }
 
-    private fun request(endpoint: URI, operation: String, body: String, user: String, password: String): ByteArray {
+    private fun request(endpoint: URI, operation: String, body: String, user: String, password: String,
+                        namespace: String = MEDIA): ByteArray {
         val nonce = ByteArray(20).also { SecureRandom().nextBytes(it) }
         val payload = envelope(body, user, password, nonce, Instant.now().toString()).toByteArray(Charsets.UTF_8)
+        if (endpoint.scheme == "http") return OnvifLocalHttp.post(endpoint, payload, namespace + "/" + operation)
         val connection = endpoint.toURL().openConnection(Proxy.NO_PROXY) as HttpsURLConnection
         try {
             connection.instanceFollowRedirects = false
@@ -103,7 +106,7 @@ object OnvifMediaClient {
             connection.readTimeout = 8000
             connection.requestMethod = "POST"
             connection.doOutput = true
-            connection.setRequestProperty("Content-Type", "application/soap+xml; charset=utf-8; action=\"$MEDIA/$operation\"")
+            connection.setRequestProperty("Content-Type", "application/soap+xml; charset=utf-8; action=\"$namespace/$operation\"")
             connection.setFixedLengthStreamingMode(payload.size)
             connection.outputStream.use { it.write(payload) }
             require(connection.responseCode == 200) { "O serviço ONVIF recusou a operação." }
@@ -119,6 +122,31 @@ object OnvifMediaClient {
                 out.toByteArray()
             }
         } finally { connection.disconnect() }
+    }
+
+    /** WS-Discovery normally returns a Device service, not the Media service.
+     * Resolve the advertised Media XAddr on that exact device before GetProfiles.
+     */
+    internal fun mediaEndpoint(xml: ByteArray, device: URI): URI {
+        val medias = document(xml).getElementsByTagNameNS(SCHEMA, "Media")
+        require(medias.length in 1..4) { "Dispositivo não anunciou um serviço Media ONVIF." }
+        for (i in 0 until medias.length) {
+            val node = medias.item(i) as Element
+            val addresses = node.getElementsByTagNameNS(SCHEMA, "XAddr")
+            for (j in 0 until addresses.length) {
+                val value = addresses.item(j).textContent.trim()
+                val uri = runCatching { endpoint(value) }.getOrNull() ?: continue
+                if (uri.host == device.host) return uri
+            }
+        }
+        throw IllegalArgumentException("Dispositivo anunciou serviço Media em outro endereço.")
+    }
+
+    fun mediaAddress(deviceAddress: String, user: String, password: String): String {
+        val device = endpoint(deviceAddress)
+        val body = "<d:GetCapabilities><d:Category>Media</d:Category></d:GetCapabilities>"
+        return mediaEndpoint(request(device, "GetCapabilities", body, user, password, DEVICE),
+            device).toString()
     }
 
     fun listProfiles(address: String, user: String, password: String): List<Profile> =
