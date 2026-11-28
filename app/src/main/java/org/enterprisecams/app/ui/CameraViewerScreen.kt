@@ -28,6 +28,7 @@ import androidx.media3.common.util.Log
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.rtsp.RtspMediaSource
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.upstream.DefaultLoadErrorHandlingPolicy
 import androidx.media3.ui.PlayerView
@@ -37,6 +38,7 @@ import org.enterprisecams.app.data.CameraEntry
 import org.enterprisecams.app.data.Providers
 import org.enterprisecams.app.playback.HttpsOnlyDataSource
 import org.enterprisecams.app.playback.HttpsVideoLink
+import org.enterprisecams.app.playback.LanRtspLink
 
 /** This screen owns playback. It has no reference to OfficialApps or an external Intent. */
 @Composable
@@ -44,15 +46,17 @@ fun CameraViewerScreen(camera: CameraEntry, onOfficial: () -> Unit) {
     val providerName = Providers.find(camera.providerId)?.name.orEmpty()
     // Sensitive links deliberately do not use rememberSaveable, DataStore or backup state.
     var source by remember(camera.id) { mutableStateOf<HttpsVideoLink?>(null) }
+    var lanSource by remember(camera.id) { mutableStateOf<LanRtspLink?>(null) }
+    var lanForm by remember(camera.id) { mutableStateOf(false) }
     var demo by remember(camera.id) { mutableStateOf(false) }
     var linkForm by remember(camera.id) { mutableStateOf(false) }
     var hls by remember(camera.id) { mutableStateOf(true) }
     var attempt by remember(camera.id) { mutableIntStateOf(0) }
     val scroll = rememberScrollState()
-    LaunchedEffect(source, demo, attempt) {
+    LaunchedEffect(source, lanSource, demo, attempt) {
         // A SurfaceView entirely clipped above a scroller may never render its first frame.
         // Bring the video into view when the action is triggered from the buttons below it.
-        if (demo || source != null) scroll.scrollTo(0)
+        if (demo || source != null || lanSource != null) scroll.scrollTo(0)
     }
     val owner = LocalLifecycleOwner.current
     var foreground by remember(owner) { mutableStateOf(owner.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) }
@@ -70,13 +74,13 @@ fun CameraViewerScreen(camera: CameraEntry, onOfficial: () -> Unit) {
         Text(listOf(camera.location, providerName).filter(String::isNotBlank).joinToString(" · "),
             color = MaterialTheme.colorScheme.onSurfaceVariant)
 
-        if (demo || source != null) {
-            Text(if (demo) "TESTE DO PLAYER · imagem gerada, sem câmera conectada" else "LINK DE VÍDEO · sessão temporária",
+        if (demo || source != null || lanSource != null) {
+            Text(if (demo) "TESTE DO PLAYER · imagem gerada, sem câmera conectada" else if (lanSource != null) "RTSP LOCAL · sessão temporária, sem criptografia" else "LINK DE VÍDEO · sessão temporária",
                 style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
-            if (foreground) key(camera.id, source, demo, attempt, hls) {
-                InternalVideoPlayer(source, hls, demo, onRetry = { attempt++ })
+            if (foreground) key(camera.id, source, lanSource, demo, attempt, hls) {
+                InternalVideoPlayer(source, lanSource, hls, demo, onRetry = { attempt++ })
             } else Box(Modifier.fillMaxWidth().aspectRatio(16f / 9f).background(Color.Black))
-            OutlinedButton(onClick = { source = null; demo = false }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
+            OutlinedButton(onClick = { source = null; lanSource = null; demo = false }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
                 Text("Encerrar reprodução")
             }
         } else Surface(shape = MaterialTheme.shapes.large, color = Color(0xFF0B1925)) {
@@ -100,12 +104,15 @@ fun CameraViewerScreen(camera: CameraEntry, onOfficial: () -> Unit) {
         if (BuildConfig.DEBUG) {
             Text("Verificação desta versão", style = MaterialTheme.typography.titleMedium)
             Text("O vídeo abaixo verifica a reprodução dentro do Enterprise. Ele não usa sua câmera nem sua conta.")
-            Button(onClick = { source = null; demo = true; attempt++ }, modifier = Modifier.fillMaxWidth().heightIn(min = 54.dp)) {
+            Button(onClick = { source = null; lanSource = null; demo = true; attempt++ }, modifier = Modifier.fillMaxWidth().heightIn(min = 54.dp)) {
                 Text("Testar vídeo interno")
             }
         }
         Button(onClick = { linkForm = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 54.dp)) {
             Text("Tenho um link de vídeo autorizado")
+        }
+        OutlinedButton(onClick = { lanForm = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 54.dp)) {
+            Text("Conectar câmera RTSP na rede local")
         }
         OutlinedButton(onClick = onOfficial, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
             Text("Configuração oficial: $providerName")
@@ -113,8 +120,33 @@ fun CameraViewerScreen(camera: CameraEntry, onOfficial: () -> Unit) {
     }
 
     if (linkForm) VideoLinkDialog(onDismiss = { linkForm = false }, onPlay = { link, isHls ->
-        source = link; hls = isHls; demo = false; attempt++; linkForm = false
+        source = link; lanSource = null; hls = isHls; demo = false; attempt++; linkForm = false
     })
+    if (lanForm) LanLinkDialog(onDismiss = { lanForm = false }, onPlay = { link ->
+        lanSource = link; source = null; demo = false; attempt++; lanForm = false
+    })
+}
+
+@Composable
+private fun LanLinkDialog(onDismiss: () -> Unit, onPlay: (LanRtspLink) -> Unit) {
+    var input by remember { mutableStateOf("") }
+    var error by remember { mutableStateOf<String?>(null) }
+    AlertDialog(onDismissRequest = onDismiss, title = { Text("Câmera RTSP local") }, text = {
+        Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text("Use o endereço RTSP fornecido para sua própria câmera, com IP privado. RTSP não criptografa o vídeo; utilize apenas uma rede local confiável.")
+            OutlinedTextField(input, { input = it.take(LanRtspLink.MAX_LENGTH); error = null },
+                label = { Text("Endereço RTSP") }, singleLine = true, modifier = Modifier.fillMaxWidth(),
+                visualTransformation = PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password), isError = error != null)
+            error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+            Text("O endereço e eventuais credenciais não são salvos. O modo RTSP não conecta a conta do fabricante.")
+        }
+    }, confirmButton = {
+        TextButton(enabled = input.isNotBlank(), onClick = {
+            try { onPlay(LanRtspLink.parse(input)); input = "" }
+            catch (e: IllegalArgumentException) { error = e.message }
+        }) { Text("Conectar") }
+    }, dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } })
 }
 
 @Composable
@@ -146,7 +178,7 @@ private fun VideoLinkDialog(onDismiss: () -> Unit, onPlay: (HttpsVideoLink, Bool
 
 @androidx.annotation.OptIn(markerClass = [UnstableApi::class])
 @Composable
-private fun InternalVideoPlayer(source: HttpsVideoLink?, hls: Boolean, demo: Boolean, onRetry: () -> Unit) {
+private fun InternalVideoPlayer(source: HttpsVideoLink?, lanSource: LanRtspLink?, hls: Boolean, demo: Boolean, onRetry: () -> Unit) {
     val context = LocalContext.current
     var firstFrame by remember { mutableStateOf(false) }
     var buffering by remember { mutableStateOf(true) }
@@ -180,10 +212,15 @@ private fun InternalVideoPlayer(source: HttpsVideoLink?, hls: Boolean, demo: Boo
             }
         }
         exoPlayer.addListener(listener)
-        val uri = if (demo) Uri.parse("android.resource://${context.packageName}/${R.raw.player_check}")
-            else Uri.parse(requireNotNull(source).value)
-        exoPlayer.setMediaItem(MediaItem.Builder().setUri(uri)
-            .setMimeType(if (!demo && hls) MimeTypes.APPLICATION_M3U8 else MimeTypes.VIDEO_MP4).build())
+        if (lanSource != null) {
+            val item = MediaItem.fromUri(lanSource.value)
+            exoPlayer.setMediaSource(RtspMediaSource.Factory().setForceUseRtpTcp(true).createMediaSource(item))
+        } else {
+            val uri = if (demo) Uri.parse("android.resource://${context.packageName}/${R.raw.player_check}")
+                else Uri.parse(requireNotNull(source).value)
+            exoPlayer.setMediaItem(MediaItem.Builder().setUri(uri)
+                .setMimeType(if (!demo && hls) MimeTypes.APPLICATION_M3U8 else MimeTypes.VIDEO_MP4).build())
+        }
         exoPlayer.prepare()
         exoPlayer.playWhenReady = true
         onDispose {
