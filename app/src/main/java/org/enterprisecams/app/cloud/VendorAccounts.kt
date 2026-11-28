@@ -47,18 +47,20 @@ interface VendorAccountConnector {
     suspend fun liveSource(session: VendorSession, cameraId: String): VendorVideoSource? = null
 }
 
-/** SDK-specific ports reflect the account and list operations recovered from the apps.
- * Each implementation owns request signing, discovery, MFA, expiry and pagination.
+/** Vendor-neutral ports for account and inventory operations observed in app variants.
+ * Do not tie a port to a private method name or an endpoint seen in one APK version.
+ * Each authorized implementation owns request signing, discovery, MFA, expiry and pagination.
  */
 interface YooseeAccountApi {
-    suspend fun emailLogin(email: String, password: String): VendorSession
-    suspend fun deviceList(session: VendorSession): List<RemoteCamera>
+    /** Accept the manufacturer's registered account identifier; the provider determines its login method. */
+    suspend fun login(accountIdentifier: String, password: String): VendorSession
+    suspend fun listDevices(session: VendorSession): List<RemoteCamera>
     suspend fun close(session: VendorSession)
     suspend fun liveSource(session: VendorSession, cameraId: String): VendorVideoSource? = null
 }
 interface HilevelAccountApi {
     suspend fun login(email: String, password: String): VendorSession
-    suspend fun getDeviceListV2(session: VendorSession): List<RemoteCamera>
+    suspend fun listDevices(session: VendorSession): List<RemoteCamera>
     suspend fun close(session: VendorSession)
     suspend fun liveSource(session: VendorSession, cameraId: String): VendorVideoSource? = null
 }
@@ -66,10 +68,10 @@ interface HilevelAccountApi {
 class YooseeConnector(private val api: YooseeAccountApi) : VendorAccountConnector {
     override val vendor = CloudVendor.YOOSEE
     override suspend fun signIn(email: String, password: String) =
-        api.emailLogin(email, password).also { require(it.vendor == vendor) }
+        api.login(email, password).also { require(it.vendor == vendor) }
     override suspend fun cameras(session: VendorSession): List<RemoteCamera> {
         require(session.vendor == vendor)
-        return api.deviceList(session)
+        return api.listDevices(session)
     }
     override suspend fun signOut(session: VendorSession) {
         require(session.vendor == vendor)
@@ -87,7 +89,7 @@ class HilevelConnector(private val api: HilevelAccountApi) : VendorAccountConnec
         api.login(email, password).also { require(it.vendor == vendor) }
     override suspend fun cameras(session: VendorSession): List<RemoteCamera> {
         require(session.vendor == vendor)
-        return api.getDeviceListV2(session)
+        return api.listDevices(session)
     }
     override suspend fun signOut(session: VendorSession) {
         require(session.vendor == vendor)
