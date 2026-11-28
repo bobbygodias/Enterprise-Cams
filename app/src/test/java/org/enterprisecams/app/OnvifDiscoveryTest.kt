@@ -7,8 +7,8 @@ import org.junit.Test
 class OnvifDiscoveryTest {
     private val ns = "http://schemas.xmlsoap.org/ws/2005/04/discovery"
     private fun xml(addresses: String) =
-        ("""<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope" """ +
-         """xmlns:d="""" + ns + """"><s:Body><d:ProbeMatches><d:ProbeMatch>""" +
+        ("<s:Envelope xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\" " +
+         "xmlns:d=\"" + ns + "\"><s:Body><d:ProbeMatches><d:ProbeMatch>" +
          "<d:XAddrs>" + addresses + "</d:XAddrs>" +
          "</d:ProbeMatch></d:ProbeMatches></s:Body></s:Envelope>").toByteArray()
 
