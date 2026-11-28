@@ -21,6 +21,10 @@ fun CloudAccountsDialog(controller: AccountController, onDismiss: () -> Unit) {
     var password by remember(vendor) { mutableStateOf("") }
     var result by remember(vendor) { mutableStateOf<AccountResult>(AccountResult.SignedOut) }
     var busy by remember(vendor) { mutableStateOf(false) }
+    // Camera streams and temporary signed URLs live only while this dialog is composed.
+    var playing by remember(vendor) { mutableStateOf<Pair<RemoteCamera, VendorVideoSource>?>(null) }
+    var playbackError by remember(vendor) { mutableStateOf<String?>(null) }
+    var playerAttempt by remember(vendor) { mutableIntStateOf(0) }
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(vendor) {
@@ -31,12 +35,44 @@ fun CloudAccountsDialog(controller: AccountController, onDismiss: () -> Unit) {
 
     fun perform(operation: suspend () -> AccountResult) {
         if (busy) return
+        playing = null
+        playbackError = null
         busy = true
         scope.launch {
             try { result = operation() }
             catch (e: CancellationException) { throw e }
             catch (_: Exception) { result = AccountResult.Failed }
             finally { busy = false; password = "" }
+        }
+    }
+
+    fun open(camera: RemoteCamera) {
+        if (busy) return
+        playing = null
+        playbackError = null
+        busy = true
+        val target = vendor
+        scope.launch {
+            try {
+                when (val value = controller.openCamera(target, camera.id)) {
+                    is CameraSourceResult.Ready -> {
+                        playing = camera to value.source
+                        playerAttempt++
+                    }
+                    CameraSourceResult.NotSupported -> playbackError =
+                        "O fabricante ainda não forneceu um fluxo de vídeo compatível para esta câmera."
+                    CameraSourceResult.NotInAccount -> playbackError =
+                        "Esta câmera não consta mais na conta autenticada. Atualize a lista."
+                    CameraSourceResult.SignedOut -> playbackError =
+                        "A sessão expirou ou foi desconectada. Entre novamente na conta."
+                    CameraSourceResult.Unavailable -> playbackError =
+                        "O conector desta conta não está disponível nesta versão."
+                    CameraSourceResult.Failed -> playbackError =
+                        "Não foi possível obter o vídeo. Verifique a conexão e tente novamente."
+                }
+            } catch (e: CancellationException) { throw e }
+            catch (_: Exception) { playbackError = "Não foi possível abrir esta câmera." }
+            finally { busy = false }
         }
     }
 
@@ -60,8 +96,32 @@ fun CloudAccountsDialog(controller: AccountController, onDismiss: () -> Unit) {
                         is AccountResult.Connected -> {
                             Text("Câmeras da conta: " + current.cameras.size, style = MaterialTheme.typography.titleMedium)
                             if (current.cameras.isEmpty()) Text("Nenhuma câmera retornada pelo serviço.")
-                            current.cameras.forEach { camera -> Text(camera.name.ifBlank { "Câmera sem nome" }) }
-                            Text("Inventário da conta. A abertura de vídeo remoto depende do conector de reprodução.",
+                            current.cameras.forEach { camera ->
+                                OutlinedButton(enabled = !busy, onClick = { open(camera) },
+                                    modifier = Modifier.fillMaxWidth()) {
+                                    Text("Assistir: " + camera.name.ifBlank { "Câmera sem nome" })
+                                }
+                            }
+                            playbackError?.let {
+                                Text(it, color = MaterialTheme.colorScheme.error)
+                            }
+                            playing?.let { (camera, stream) ->
+                                Text("Vídeo da conta: " + camera.name,
+                                    style = MaterialTheme.typography.titleMedium)
+                                key(vendor, camera.id, playerAttempt) {
+                                    InternalVideoPlayer(
+                                        source = (stream as? VendorVideoSource.Https)?.link,
+                                        lanSource = (stream as? VendorVideoSource.Rtsp)?.link,
+                                        hls = (stream as? VendorVideoSource.Https)?.hls ?: false,
+                                        demo = false,
+                                        onRetry = { playerAttempt++ }
+                                    )
+                                }
+                                OutlinedButton(onClick = { playing = null }, modifier = Modifier.fillMaxWidth()) {
+                                    Text("Encerrar vídeo")
+                                }
+                            }
+                            Text("O vídeo depende de um conector autorizado do fabricante; nenhum link ou token é gravado.",
                                 color = MaterialTheme.colorScheme.onSurfaceVariant)
                             OutlinedButton(enabled = !busy, onClick = { perform { controller.refresh(vendor) } }) { Text("Atualizar câmeras") }
                             OutlinedButton(enabled = !busy, onClick = { perform { controller.signOut(vendor) } }) { Text("Desconectar conta") }
