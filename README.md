@@ -59,3 +59,15 @@ O workflow Android executa compilação, testes de dados, lint e testes instrume
 A referência visual fornecida para o projeto foi preservada no ícone e na tela inicial: robô prateado, olhos azuis, câmera e fundo preto. O painel segue a organização por câmera/local explicitada no briefing. A tipografia, o espaçamento e os componentes desta primeira implementação são propostas concretas para revisão.
 
 Licença [CC0 1.0](LICENSE), preservada da criação do repositório. Bobby Dias & Andrew Vox.
+
+### Câmeras locais via RTSP (experimental)
+
+O visualizador interno aceita agora um endereço RTSP fornecido pelo proprietário da câmera, limitado a IP privado IPv4 (RFC 1918). A sessão usa Media3 RTSP sobre TCP, não grava o endereço nem as credenciais e exige ação explícita. RTSP não é criptografado: use exclusivamente rede local confiável. A restrição valida o endereço inicial e não constitui isolamento de rede do servidor. Não há varredura, descoberta de senhas ou presunção de suporte RTSP em um determinado modelo. Não substitui a integração P2P/nuvem.
+
+#### Inspeção estática dos APKs fornecidos em 28/11/2026
+
+- Yoosee 6.32.3: SHA-256 3b8021b351df0dea14827d71e66c1fb5a0f631f7cdfb70a597505e3600ef5d98; 20 DEX; arm64 inclui libgwbase.so, libgwmediaplayer.so, libgwplayer.so e libp2pav.so. O cabeçalho ProtocolParser.h no APK enumera HLS/M3U8, TS, MP4, DASH/MPD e H264 como formatos reconhecidos pelo player, não como contratos de autenticação.
+- Hilevel 1.20260805.295: SHA-256 6db517c4398cf906ada31653931316d6ee721f5252f6565255280aad862a5bb4; 9 DEX; arm64 inclui libP2PWrapper.so, libclP2P.so, libp2p.so e libmv3_rtplayer.so.
+- O arquivo .sha256 do Yoosee refere-se ao ZIP de fontes modificadas, não ao APK. O ZIP correspondente não foi recebido nesta inspeção.
+
+Inventário de evidências, sem publicar APKs, bibliotecas ou código proprietário. A presença das bibliotecas não comprova autenticação, inventário remoto, compatibilidade de ABI nem reprodução de câmera física. Próxima etapa: usar interfaces autorizadas específicas de cada fabricante, validar com câmera de propriedade do usuário e manter o estado experimental até então.
