@@ -11,6 +11,22 @@ class LanRtspLink private constructor(val value: String) {
 
     companion object {
         const val MAX_LENGTH = 8192
+        /** The owner supplies the camera stream address and its own device credentials.
+         * No account password is sent to a guessed host or stored in the camera record.
+         */
+        fun authenticated(address: String, username: String, password: String): LanRtspLink {
+            val original = URI(parse(address).value)
+            require(original.rawUserInfo == null) { "Informe o endereço sem usuário ou senha." }
+            require(username.length in 1..256 && ':' !in username &&
+                password.length in 1..512 && (username + password).none { it.isISOControl() }) {
+                "Informe o usuário e a senha da câmera."
+            }
+            val userInfo = URI("rtsp", "$username:$password", original.host, original.port,
+                "/", null, null).rawUserInfo
+            return parse("rtsp://$userInfo@" + original.rawAuthority + original.rawPath +
+                (original.rawQuery?.let { "?$it" } ?: ""))
+        }
+
         fun parse(input: String): LanRtspLink {
             val value = input.trim()
             require(value.length in 1..MAX_LENGTH && value.none { it.isISOControl() }) {
