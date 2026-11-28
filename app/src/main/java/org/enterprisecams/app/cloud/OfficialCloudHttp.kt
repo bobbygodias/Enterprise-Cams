@@ -50,7 +50,8 @@ internal class OfficialCloudHttp(
                 key.lowercase(Locale.ROOT) !in RESERVED_HEADERS
         }) { "Invalid cloud headers" }
 
-        val connection = connect(URL("https", hostname, request.path))
+        val connection = try { connect(URL("https", hostname, request.path)) }
+        catch (_: IOException) { throw CloudHttpFailure.TransportFailed }
         try {
             require(connection is HttpsURLConnection) { "Cloud transport must use HTTPS" }
             connection.instanceFollowRedirects = false
@@ -102,9 +103,10 @@ internal class OfficialCloudHttp(
         private fun validHostname(host: String): Boolean =
             host.length in 4..253 && host == host.lowercase(Locale.ROOT) &&
                 !host.endsWith('.') && !host.contains(':') &&
-                host.split('.').size >= 2 && host.split('.').all { label ->
+                host.any { it in 'a'..'z' } && host.split('.').size >= 2 && host.split('.').all { label ->
                     label.length in 1..63 && label.first().isLetterOrDigit() &&
-                        label.last().isLetterOrDigit() && label.all { it.isLetterOrDigit() || it == '-' }
+                        label.last().isLetterOrDigit() &&
+                        label.all { it in 'a'..'z' || it in '0'..'9' || it == '-' }
                 }
     }
 }
