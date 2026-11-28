@@ -18,13 +18,18 @@ internal object OnvifLocalHttp {
     private const val MAX_HEADERS = 16_384
     private const val TIMEOUT_MS = 8000
 
-    fun post(endpoint: URI, body: ByteArray): ByteArray {
+    fun post(endpoint: URI, body: ByteArray, action: String): ByteArray {
+        require(action in setOf(
+            "http://www.onvif.org/ver10/media/wsdl/GetProfiles",
+            "http://www.onvif.org/ver10/media/wsdl/GetStreamUri",
+            "http://www.onvif.org/ver10/device/wsdl/GetCapabilities"
+        )) { "Ação ONVIF não permitida." }
         require(endpoint.scheme == "http" && OnvifMediaClient.endpoint(endpoint.toString()) == endpoint)
         require(body.size in 1..MAX_BODY)
         val port = if (endpoint.port == -1) 80 else endpoint.port
         val head = "POST " + endpoint.rawPath + " HTTP/1.1\r\n" +
             "Host: " + endpoint.host + ":" + port + "\r\n" +
-            "Content-Type: application/soap+xml; charset=utf-8\r\n" +
+            "Content-Type: application/soap+xml; charset=utf-8; action=\\"" + action + "\\"\r\n" +
             "Content-Length: " + body.size + "\r\n" +
             "Accept: application/soap+xml\r\n" +
             "Connection: close\r\n\r\n"
