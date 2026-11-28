@@ -81,3 +81,41 @@ Os hashes Hilevel e iCSee abaixo identificam somente o APK base extraído, não 
 - iCSee base: `708d4f5dadbf179370a3fbf69c15554e156a86af84e3af0d19b7852c65cdbe71`.
 
 Os arquivos de fabricantes e suas desmontagens permanecem separados do repositório público do Enterprise Cams. O repositório recebe este resumo técnico e nosso código próprio.
+
+
+## Recebimento e análise dirigida — 28/11/2026 (Yoosee 6.48 e Hilevel 1.20261113.459)
+
+Os dois arquivos foram fornecidos por Bobby para a **pesquisa de interoperabilidade** do Enterprise Cams. São contêineres `.apks` (ZIPs contendo base e splits), com `APKCube.txt` declarando `Source: https://apkcube.com`. **Não foi verificada a cadeia de publicação ou a assinatura oficial do aplicativo** e os pacotes não foram instalados ou executados. Os resultados abaixo derivam da inspeção estática do manifest binário, índice de arquivos e tabela de strings/classes dos DEX. Não incorporar nem distribuir estes APKs, componentes nativos, chaves ou segredos.
+
+| Propriedade | Yoosee | Hilevel |
+| --- | --- | --- |
+| Nome do arquivo | `Yoosee_6.48.apks` | `Hilevel_1.20261113.459.apks` |
+| Identificador no manifest | `com.yoosee` | `com.sotaviz.hilevelen` |
+| Versão / code | `6.48` / `64731` | `1.20261113.459` / `459` |
+| API mínima / alvo | `24` / `36` | `29` / `37` |
+| Pacotes internos | base + 5 splits (arm64, en, pt, tvdpi, xxhdpi) | base + 3 splits (arm64, en, xxhdpi) |
+| Arquivos DEX no base | 11 | 10 |
+| Bibliotecas nativas no split arm64 | 58 | 79 |
+| SHA-256 contêiner completo | `a745140e877481981cc8b48ca277fb4509516decc3ed57cd1c72505fc404f56c` | `f0df294ccc241d1f4b9b8a71c14a25c345bd22241af753decab3c389ca701151` |
+| SHA-256 base.apk | `8ee10fbadf0db55dac4f5763aa841b9ec8806cc841d1ea16494e7d085941a294` | `ab250094707be57b37b74ca8b376c4b38cfd867d4307be63dc6f52d7edbf0c84` |
+
+### Yoosee 6.48 — efeito sobre a autenticação e o vídeo
+
+- As strings exatas `/openapi/app/user/login/account` e `/openapi/app/user/device/listDevice` continuam presentes. Também há `HttpServiceAdapter`, `HttpInterface` e `AddBaseParamsInterceptor`: indícios de operação cliente/serviço, **não** prova de que se possa chamar essas rotas sem registro de cliente, assinatura e sessão autorizada.
+- O pacote agora também expõe classes `com/gwell/kmp/accountMgr2`, `com/yoosee/yooseecompose/features/account`, `com/jwkj/iotvideo/player/LivePlayer` e `com/gw/player`. As enumerações de método de login incluem **Phone** e **YooseeId**, além de Email; o Enterprise Cams não deve forçar o caractere `@` na identificação local da conta.
+- Bibliotecas presentes no split arm64: `libgwplayer.so`, `libgwmediaplayer.so`, `libp2pav.so` e `libgwbase.so`. A presença de um player interno não transforma esse componente num SDK público reutilizável.
+- Há mensagens de usuário confirmando suporte de **certos dispositivos** a RTSP/ONVIF **na mesma LAN** quando o recurso é habilitado e a senha própria da câmera é configurada. Isso respalda manter a implementação ONVIF/RTSP aberta, não presumir que todos os modelos suportem o recurso nem confundir senha da câmera com senha da conta de nuvem.
+
+### Hilevel 1.20261113.459 — efeito sobre o inventário e o vídeo
+
+- O manifest conserva `com.sotaviz.hilevelen`, mas a versão nova eleva a API mínima de 24 (arquivo antigo) para **29**, ao passo que o Enterprise Cams continua independente desse requisito de instalação.
+- Estão presentes `/core/v1/auth/login`, a classe `com/v2/clhttpclient/api/protocol/account/ISession` e modelos de resultado da conta. Para listagem aparecem `/iot/v1/device/list.json`, `/lecam/service/device/deviceListApp` e `/lecam/sigV2/device/deviceListApp/V2`. A busca dirigida **não recuperou a string exata** `getDeviceListV2` do APK examinado anteriormente. Isso **não prova remoção do recurso**: várias famílias de API coexistem, partes podem ser ofuscadas e os contratos utilizáveis dependem do fluxo e sessão corretos. Não fixar um endpoint a partir da mera existência da string.
+- Bibliotecas nativas `libP2PWrapper.so`, `libclP2P.so`, `libp2p.so` e `libmv3_rtplayer.so` permanecem; nenhuma dessas bibliotecas foi executada ou anexada ao nosso projeto.
+- Existem referências `/api/system/onvif/discovery`, `/api/system/onvif/rtsp_url`, `/api/system/onvif/snapshot_url` em componentes ligados a SmartBox. **Não generalizar** isso ao modelo físico da câmera Hilevel de Bobby nem apresentar como solução universal de cloud.
+
+### Decisões aplicadas e próximos testes
+
+- Os IDs de pacote permanecem compatíveis com o catálogo atual: **não há necessidade de alterar a identificação por QR/Play Store**.
+- O contrato abstrato `YooseeAccountApi` passa a usar `login(accountIdentifier, ...)` em vez de `emailLogin(...)`; `YooseeAccountApi` e `HilevelAccountApi` expõem `listDevices(...)` em vez de nomes internos específicos de uma versão. A validação de qual método de login existe cabe ao driver autorizado de cada fabricante. Testes com drivers sintéticos verificam roteamento e independência de conta.
+- A sequência funcional continua: **conta previamente registrada no fabricante → autenticação autorizada → inventário da conta → seleção da câmera → vídeo interno**. Para cada fabricante ainda é necessário o driver real de sessão/inventário/stream correspondente, autenticação válida e ensaio com câmera física; CI e strings dos APKs não comprovam essas etapas.
+- Não utilizar chaves embutidas no aplicativo de terceiro como identidade do Enterprise Cams, não armazenar credenciais de nuvem no painel, não instalar os pacotes de estudo em aparelhos do usuário como teste implícito.
