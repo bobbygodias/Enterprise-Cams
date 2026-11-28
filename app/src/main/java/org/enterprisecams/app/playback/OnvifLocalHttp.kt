@@ -29,7 +29,7 @@ internal object OnvifLocalHttp {
         val port = if (endpoint.port == -1) 80 else endpoint.port
         val head = "POST " + endpoint.rawPath + " HTTP/1.1\r\n" +
             "Host: " + endpoint.host + ":" + port + "\r\n" +
-            "Content-Type: application/soap+xml; charset=utf-8; action=\\"" + action + "\\"\r\n" +
+            "Content-Type: application/soap+xml; charset=utf-8; action=\"" + action + "\"\r\n" +
             "Content-Length: " + body.size + "\r\n" +
             "Accept: application/soap+xml\r\n" +
             "Connection: close\r\n\r\n"
