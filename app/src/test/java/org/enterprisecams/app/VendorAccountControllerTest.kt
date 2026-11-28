@@ -79,6 +79,20 @@ class VendorAccountControllerTest {
         assertEquals(1,y.logoutCount)
     }
 
+    @Test fun defectiveSdkModuleDoesNotDisableIndependentVendor() {
+        val y = Driver(CloudVendor.YOOSEE)
+        val h = Driver(CloudVendor.HILEVEL)
+        val modules = CloudConnectors.select(listOf(
+            { error("synthetic broken provider") },
+            { y },
+            { Driver(CloudVendor.YOOSEE) },
+            { h }
+        ))
+        assertEquals(listOf(CloudVendor.YOOSEE, CloudVendor.HILEVEL), modules.map { it.vendor })
+        val onlyH = CloudConnectors.select(listOf({ error("Yoosee unavailable") }, { h }))
+        assertEquals(listOf(CloudVendor.HILEVEL), onlyH.map { it.vendor })
+    }
+
     @Test fun registeredPhoneOrDeviceIdIsNotBlockedBeforeManufacturerValidation() = runBlocking {
         val driver = Driver(CloudVendor.YOOSEE)
         val controller = AccountController(listOf(driver))
