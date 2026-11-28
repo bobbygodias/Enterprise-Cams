@@ -192,23 +192,33 @@ private fun OnvifDialog(onDismiss: () -> Unit, onPlay: (LanRtspLink) -> Unit) {
 
 @Composable
 private fun LanLinkDialog(onDismiss: () -> Unit, onPlay: (LanRtspLink) -> Unit) {
-    var input by remember { mutableStateOf("") }
+    var address by remember { mutableStateOf("") }
+    var username by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
     var error by remember { mutableStateOf<String?>(null) }
-    AlertDialog(onDismissRequest = onDismiss, title = { Text("Câmera RTSP local") }, text = {
+    AlertDialog(onDismissRequest = onDismiss, title = { Text("Entrar na câmera local") }, text = {
         Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("Use o endereço RTSP fornecido para sua própria câmera, com IP privado. RTSP não criptografa o vídeo; utilize apenas uma rede local confiável.")
-            OutlinedTextField(input, { input = it.take(LanRtspLink.MAX_LENGTH); error = null },
-                label = { Text("Endereço RTSP") }, singleLine = true, modifier = Modifier.fillMaxWidth(),
+            Text("Informe o endereço RTSP e as credenciais configuradas na própria câmera. A senha da conta na nuvem pode ser diferente. Use somente uma rede local confiável; RTSP não criptografa o vídeo.")
+            OutlinedTextField(address, { address = it.take(LanRtspLink.MAX_LENGTH); error = null },
+                label = { Text("Endereço RTSP da câmera") }, singleLine = true, modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri), isError = error != null)
+            OutlinedTextField(username, { username = it.take(256); error = null },
+                label = { Text("Usuário da câmera") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(password, { password = it.take(512); error = null },
+                label = { Text("Senha da câmera") }, singleLine = true, modifier = Modifier.fillMaxWidth(),
                 visualTransformation = PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password), isError = error != null)
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password))
             error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
-            Text("O endereço e eventuais credenciais não são salvos. O modo RTSP não conecta a conta do fabricante.")
+            Text("As credenciais são usadas somente nesta sessão de vídeo e não são salvas no painel.")
         }
     }, confirmButton = {
-        TextButton(enabled = input.isNotBlank(), onClick = {
-            try { onPlay(LanRtspLink.parse(input)); input = "" }
-            catch (e: IllegalArgumentException) { error = e.message }
-        }) { Text("Conectar") }
+        TextButton(enabled = address.isNotBlank() && username.isNotBlank() && password.isNotEmpty(), onClick = {
+            try {
+                val link = LanRtspLink.authenticated(address, username, password)
+                address = ""; username = ""; password = ""
+                onPlay(link)
+            } catch (e: IllegalArgumentException) { error = e.message }
+        }) { Text("Entrar e reproduzir") }
     }, dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } })
 }
 
