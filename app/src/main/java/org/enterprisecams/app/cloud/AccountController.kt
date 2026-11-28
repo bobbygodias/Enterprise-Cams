@@ -45,7 +45,7 @@ class AccountController(connectors: List<VendorAccountConnector>) {
     suspend fun signIn(vendor: CloudVendor, email: String, password: String): AccountResult = lock.withLock {
         val driver = drivers[vendor] ?: return@withLock AccountResult.Unavailable
         val account = email.trim()
-        if (account.length !in 3..254 || '@' !in account || account.any { it.isWhitespace() || it.isISOControl() } ||
+        if (account.length !in 3..254 || account.any { it.isWhitespace() || it.isISOControl() } ||
             password.isEmpty() || password.length > 1024) return@withLock AccountResult.InvalidCredentials
         sessions.remove(vendor)?.let { close(driver, it) }
         inventoryIds.remove(vendor)
