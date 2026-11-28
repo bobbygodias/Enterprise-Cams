@@ -22,6 +22,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalContext
+import org.enterprisecams.app.cloud.AccountController
+import org.enterprisecams.app.cloud.CloudConnectors
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -47,6 +50,9 @@ import org.enterprisecams.app.platform.AppAvailability
 @Composable
 fun EnterpriseCamsApp(vm: HubViewModel) {
     val ui by vm.ui.collectAsStateWithLifecycle()
+    val context = LocalContext.current.applicationContext
+    val accounts = remember(context) { AccountController(CloudConnectors.load(context)) }
+    var accountsOpen by remember { mutableStateOf(false) }
     val owner = LocalLifecycleOwner.current
     val scope = rememberCoroutineScope()
     val snackbar = remember { SnackbarHostState() }
@@ -58,6 +64,7 @@ fun EnterpriseCamsApp(vm: HubViewModel) {
     var editCamera by remember { mutableStateOf<CameraEntry?>(null) }
     var deleteCamera by remember { mutableStateOf<CameraEntry?>(null) }
     var missingApp by remember { mutableStateOf<CameraProvider?>(null) }
+    var selectedCameraId by rememberSaveable { mutableStateOf<String?>(null) }
     val export = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
         if (uri != null) vm.exportBackup(uri)
     }
@@ -77,13 +84,15 @@ fun EnterpriseCamsApp(vm: HubViewModel) {
         ui.message?.let { snackbar.showSnackbar(it); vm.dismissMessage() }
     }
     val inSetup = showSetup && ui.hub.draft != null
-    BackHandler(inSetup) { showSetup = false }
+    val selectedCamera = ui.hub.cameras.find { it.id == selectedCameraId }
+    BackHandler(inSetup || selectedCamera != null) { showSetup = false; selectedCameraId = null }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
-                    if (inSetup) Text("Adicionar câmera")
+                    if (selectedCamera != null) Text("Sua câmera")
+                    else if (inSetup) Text("Adicionar câmera")
                     else Row(verticalAlignment = Alignment.CenterVertically) {
                         Image(painterResource(R.drawable.enterprise_badge), null,
                             Modifier.size(44.dp).clip(RoundedCornerShape(12.dp)))
@@ -95,14 +104,16 @@ fun EnterpriseCamsApp(vm: HubViewModel) {
                     }
                 },
                 navigationIcon = {
-                    if (inSetup) IconButton(onClick = { showSetup = false }) {
+                    if (inSetup || selectedCamera != null) IconButton(onClick = { showSetup = false; selectedCameraId = null }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Voltar ao painel")
                     }
                 },
                 actions = {
-                    if (!inSetup) {
+                    if (!inSetup && selectedCamera == null) {
                         IconButton(onClick = { backupMenu = true }) { Icon(Icons.Default.MoreVert, "Opções do painel") }
                         DropdownMenu(expanded = backupMenu, onDismissRequest = { backupMenu = false }) {
+                            DropdownMenuItem(text = { Text("Contas Yoosee e Hilevel") },
+                                onClick = { backupMenu = false; accountsOpen = true })
                             DropdownMenuItem(text = { Text("Salvar backup") }, enabled = ui.loaded && !ui.busy,
                                 onClick = { backupMenu = false; backupInfo = true })
                             DropdownMenuItem(text = { Text("Importar backup") }, enabled = ui.loaded && !ui.busy,
@@ -117,7 +128,7 @@ fun EnterpriseCamsApp(vm: HubViewModel) {
         },
         snackbarHost = { SnackbarHost(snackbar) },
         floatingActionButton = {
-            if (ui.loaded && !inSetup && ui.hub.cameras.isNotEmpty()) {
+            if (ui.loaded && !inSetup && selectedCamera == null && ui.hub.cameras.isNotEmpty()) {
                 ExtendedFloatingActionButton(onClick = { if (!ui.busy) { vm.startDraft(); showSetup = true } },
                     icon = { Icon(Icons.Default.Add, null) }, text = { Text("Adicionar câmera") })
             }
@@ -131,18 +142,23 @@ fun EnterpriseCamsApp(vm: HubViewModel) {
                     Button(onClick = vm::observe) { Text("Tentar novamente") }
                 }
                 !ui.loaded -> CircularProgressIndicator(Modifier.padding(40.dp))
+                selectedCamera != null -> CameraViewerScreen(selectedCamera, onOfficial = {
+                    Providers.find(selectedCamera.providerId)?.let { provider ->
+                        if (ui.apps[provider.id] == AppAvailability.MISSING) missingApp = provider else vm.open(provider)
+                    }
+                })
                 inSetup -> SetupScreen(
                     draft = ui.hub.draft!!, apps = ui.apps, busy = ui.busy,
                     onContinue = vm::saveDraft, onOpen = vm::open, onInstall = vm::install,
-                    onFinish = vm::finishDraft, onDiscard = { vm.discardDraft(); showSetup = false },
+                    onFinish = { vm.finishDraft() }, onFinishWithoutApp = { vm.finishDraft(requireOfficialApp = false) }, onDiscard = { vm.discardDraft(); showSetup = false },
                 )
                 else -> HomeScreen(
                     cameras = ui.hub.cameras, draft = ui.hub.draft, apps = ui.apps, enabled = !ui.busy,
                     onAdd = { vm.startDraft(); showSetup = true }, onResumeDraft = { showSetup = true },
                     onOpen = { camera ->
-                        Providers.find(camera.providerId)?.let { provider ->
-                            if (ui.apps[provider.id] == AppAvailability.MISSING) missingApp = provider else vm.open(provider)
-                        }
+                        snackbar.currentSnackbarData?.dismiss()
+                        vm.dismissMessage()
+                        selectedCameraId = camera.id
                     },
                     onFavorite = { vm.favorite(it.id) }, onEdit = { editCamera = it }, onRemove = { deleteCamera = it },
                 )
@@ -151,6 +167,7 @@ fun EnterpriseCamsApp(vm: HubViewModel) {
         }
     }
 
+    if (accountsOpen) CloudAccountsDialog(accounts, onDismiss = { accountsOpen = false })
     missingApp?.let { provider ->
         AlertDialog(onDismissRequest = { missingApp = null }, title = { Text("Instalar ${provider.name}") },
             text = { Text("O acesso à câmera está salvo. Instale o aplicativo oficial e depois volte ao painel.") },
@@ -182,9 +199,9 @@ fun EnterpriseCamsApp(vm: HubViewModel) {
         text = { Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(14.dp)) {
             Text("Suas câmeras, organizadas por você.", fontWeight = FontWeight.Bold)
             Text("Versão ${BuildConfig.VERSION_NAME} · primeira versão de testes")
-            Text("O painel guarda nomes, locais e favoritos neste aparelho. Não possui anúncios, conta própria, telemetria ou conexão de rede.")
-            Text("O vídeo e os controles abrem no aplicativo oficial correspondente. Nesta versão, a seleção da câmera ainda acontece nele.")
-            Text("Internet, login, anúncios e funcionamento das câmeras dependem de cada aplicativo oficial. O Enterprise Cams não altera esses aplicativos.")
+            Text("O painel guarda nomes, locais e favoritos neste aparelho. Não possui anúncios, conta própria ou telemetria. A rede é usada para reproduzir fontes HTTPS autorizadas.")
+            Text("O toque abre o visualizador interno. A autenticação, inventário e controles dos fabricantes ainda não estão integrados.")
+            Text("Links de vídeo autorizados permanecem em memória. A configuração e assinatura oficiais podem ser acessadas explicitamente.")
             Text("Código aberto · licença CC0\nBobby Dias & Andrew Vox")
         } }, confirmButton = { TextButton(onClick = { about = false }) { Text("Fechar") } })
 }
@@ -281,11 +298,7 @@ private fun CameraCard(camera: CameraEntry, availability: AppAvailability, enabl
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(camera.name, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
                 Text(listOf(camera.location, providerName).filter { it.isNotBlank() }.joinToString(" · "), color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Text(when (availability) {
-                    AppAvailability.READY -> "Abrir no $providerName"
-                    AppAvailability.MISSING -> "Instalar $providerName"
-                    AppAvailability.UNAVAILABLE -> "$providerName indisponível"
-                }, color = if (availability == AppAvailability.READY) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+                Text("Abrir visualizador interno", color = MaterialTheme.colorScheme.primary,
                     style = MaterialTheme.typography.labelLarge)
             }
             Column {
@@ -309,7 +322,7 @@ private fun CameraCard(camera: CameraEntry, availability: AppAvailability, enabl
 @Composable
 private fun SetupScreen(draft: CameraDraft, apps: Map<String, AppAvailability>, busy: Boolean,
     onContinue: (CameraDraft) -> Unit, onOpen: (CameraProvider) -> Unit, onInstall: (CameraProvider) -> Unit,
-    onFinish: () -> Unit, onDiscard: () -> Unit) {
+    onFinish: () -> Unit, onFinishWithoutApp: () -> Unit, onDiscard: () -> Unit) {
     var discard by remember { mutableStateOf(false) }
     Column(Modifier.widthIn(max = 680.dp).fillMaxSize().verticalScroll(rememberScrollState()).imePadding().padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(18.dp)) {
@@ -372,10 +385,11 @@ private fun SetupScreen(draft: CameraDraft, apps: Map<String, AppAvailability>, 
             }
             SetupStep("2", "Volte e salve o acesso", "Quando a câmera estiver funcionando, volte ao Enterprise Cams e confirme abaixo. Seu cadastro fica guardado enquanto isso.")
             Surface(shape = RoundedCornerShape(16.dp), color = MaterialTheme.colorScheme.surface) {
-                Text("Nesta versão, o acesso abre o ${provider.name}. Nele, selecione a câmera ${draft.name}.", Modifier.padding(18.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("O cadastro não comprova acesso à câmera. É possível salvar sem confirmar a configuração e usar um link de vídeo autorizado no visualizador interno.", Modifier.padding(18.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Button(onClick = onFinish, enabled = availability == AppAvailability.READY && !busy,
                 modifier = Modifier.fillMaxWidth().heightIn(min = 54.dp)) { Text("Concluí a configuração") }
+            OutlinedButton(onClick = onFinishWithoutApp, enabled = !busy, modifier = Modifier.fillMaxWidth().heightIn(min = 54.dp)) { Text("Salvar sem confirmar configuração") }
             TextButton(onClick = { onContinue(draft.copy(setupStarted = false)) }, enabled = !busy) { Text("Editar nome ou aplicativo") }
         }
         TextButton(onClick = { discard = true }, enabled = !busy) { Text("Descartar este cadastro") }

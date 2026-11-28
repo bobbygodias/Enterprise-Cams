@@ -64,7 +64,15 @@ class CameraFlowTest {
         device.pressBack()
         rule.waitUntil(10_000) { rule.onAllNodesWithText("Concluí a configuração").fetchSemanticsNodes().isNotEmpty() }
         rule.onNodeWithText("Concluí a configuração").performScrollTo().performClick()
-        rule.waitUntil(10_000) { rule.onAllNodesWithText("Abrir no Yoosee").fetchSemanticsNodes().isNotEmpty() }
+        rule.waitUntil(10_000) { rule.onAllNodesWithText("Abrir visualizador interno").fetchSemanticsNodes().isNotEmpty() }
+        rule.onNodeWithText("Abrir visualizador interno").performScrollTo().performClick()
+        rule.onNodeWithText("Conexão da câmera pendente").performScrollTo().assertExists()
+        rule.onNodeWithText("Tenho um link de vídeo autorizado").performScrollTo().performClick()
+        rule.onNodeWithText("Link HTTPS").performTextInput("http://example.com/live.m3u8")
+        rule.onNodeWithText("Reproduzir aqui").performClick()
+        rule.onNodeWithText("Use HTTPS, sem usuário ou senha no endereço.").assertExists()
+        rule.onNodeWithText("Cancelar").performClick()
+        rule.onNodeWithContentDescription("Voltar ao painel").performClick()
         rule.onNodeWithContentDescription("Favoritar Portão").performClick()
         rule.onNodeWithText("Favoritas").performClick()
         rule.onNodeWithText("Portão").assertExists()
@@ -110,6 +118,15 @@ class CameraFlowTest {
         rule.onNodeWithText("Continuar cadastro").performClick()
         rule.onNodeWithText("TowerCam").assertExists()
         capture("04-missing-app")
+    }
+
+    @Test fun saveUnconfirmedCameraWithoutOfficialApp() {
+        fillCamera("TowerCam", "Hilevel")
+        rule.onNodeWithText("Salvar sem confirmar configuração").performScrollTo().performClick()
+        rule.waitUntil(10_000) { rule.onAllNodesWithText("Abrir visualizador interno").fetchSemanticsNodes().isNotEmpty() }
+        rule.onNodeWithText("Abrir visualizador interno").performScrollTo().performClick()
+        rule.onNodeWithText("Conexão da câmera pendente").assertExists()
+        rule.onNodeWithText("Tenho um link de vídeo autorizado").performScrollTo().assertExists()
     }
 
     @Test fun largeTextKeepsSetupActionsReachable() {
