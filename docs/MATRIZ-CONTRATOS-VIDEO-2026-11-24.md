@@ -1,0 +1,75 @@
+# Enterprise Cams — matriz de evidências para vídeo autenticado
+
+**Nota de alinhamento de 25/11/2026:** este arquivo preserva a pesquisa histórica dos fabricantes inicialmente examinados. A especificação atual do produto encontra-se na **main**, em [ESCOPO.md](https://github.com/bobbygodias/Enterprise-Cams/blob/main/docs/ESCOPO.md) e [INTEGRACOES.md](https://github.com/bobbygodias/Enterprise-Cams/blob/main/docs/INTEGRACOES.md), atualizados pelo [PR #5](https://github.com/bobbygodias/Enterprise-Cams/pull/5). O Enterprise Cams não se limita aos fabricantes desta matriz: **Yoosee e Hilevel são prioritários, outros devem ser integráveis; QR Code e descoberta são extensíveis; autenticação é feita pelos próprios fabricantes, nós implementamos conectores e sessões.** Complicações de integração e segurança devem ser resolvidas pela engenharia, sem exigir garantia absoluta de segurança e sem tomar ausência de SDK pronto como impedimento definitivo ao desenvolvimento de código próprio. Esta matriz não substitui o trabalho de implementação.
+
+Data: 24/11/2026 (Goiânia). Estado: INVESTIGAÇÃO TÉCNICA, integração funcional PENDENTE.
+
+## Decisão de escopo preservada
+
+O objetivo atual é assistir às câmeras *dentro* do Enterprise Cams, sem navegação diária pelos aplicativos oficiais, preservando associação às contas, serviços de nuvem, assinaturas e controles que cada fabricante realmente oferece. Instalação/configuração inicial e renovação podem permanecer no aplicativo oficial. **ONVIF, RTSP ou links genéricos não são substitutos aprovados para a integração com a nuvem**; só podem ser complementares quando a coexistência for demonstrada. Nenhum teste físico, login real, captura de tráfego nem extração de segredo foi realizado na elaboração desta matriz.
+
+Fontes confrontadas:
+- `docs/AGREGADOR-CLOUD-2026-09-27.md` (branch `feat/cloud-aggregation-contract`): decisões sobre serviços contratados, autenticação e condições de conclusão.
+- `docs/ANALISE-APKS.md` (main): observações estáticas por pacote/versão.
+- `docs/INTEGRACOES.md` e `docs/CONTINUIDADE.md` (main): limites e histórico.
+- PR #2 (player interno HTTPS HLS/MP4 e clipe de teste); PR #3 (reparo do teste instrumentado). Ambos estavam abertos e em rascunho na consulta de 24/11.
+
+## Matriz: capacidade demonstrada versus hipótese
+
+| Fabricante | Evidência disponível | O que **não** foi demonstrado | Próxima verificação segura |
+| --- | --- | --- | --- |
+| iCSee (`com.xm.csee`) | Contrato *interno* de atalho de launcher: `WelcomePageActivity`, `xmApp=addShortCut` e `DESK_DEVICE_ID` (análise estática do pacote recebido). | Streaming autenticado dentro do Enterprise Cams; token/API externo; funcionamento do atalho em aparelho físico. O atalho continua abrindo o app oficial. | Identificar documentação atual de interoperabilidade e um contrato autorizado para obter stream/controles; se for testar o atalho, classificar estritamente como navegação, não como vídeo interno. |
+| Hilevel (`com.sotaviz.hilevelen`) | Deep link com parâmetro `config` e componentes `com.v2.clsdk.CLSDK` na versão estudada. | Endpoint externo de reprodução, compatibilidade de conta/assinatura, abertura direta do vídeo; o deep link examinado não a comprovou. | Localizar especificação e licença de integração do serviço atual; separar configuração, autenticação e vídeo. |
+| Yoosee (`com.yoosee`) | `yoosee://share` alcança WebView; bibliotecas P2P próprias. Um exemplo antigo `GWTimes/IoTVideo-Android` apresenta registro por tokens, mas com diferenças para o pacote atual. | API/SDK de sessão vigente compatível com a conta e serviços já associados, vídeo interno, direitos de assinatura, segurança dos exemplos antigos. | Confrontar documentação atual, interfaces públicas e licenças, **sem** portar exemplos que desabilitam verificação TLS ou registram credenciais. |
+| V380 (`com.macrovideo.v380`) | Identidade de pacote conhecida na base do painel. | SDK, autenticação externa, identificador de câmera, vídeo/controles; não havia APK disponível na rodada documentada. | Buscar documentação pública do fabricante, sem inferir recursos pela semelhança com V380 Pro. |
+| V380 Pro (`com.macrovideo.v380pro`) | Identidade de pacote distinta de V380. | Os mesmos contratos de vídeo, conta e serviço; nenhum ensaio com APK físico confirmado nesta investigação. | Investigar separadamente a versão Pro e suas condições de uso. |
+
+**XMEye**: consta na análise histórica, mas **não** está entre os cinco alvos iniciais do painel. Seus parâmetros de notificação de alarme não equivalem a uma API de reprodução. Não reutilizar o contrato interno do iCSee por suposição.
+
+## Contrato mínimo necessário para chamar uma integração de real
+
+Uma implementação por fabricante precisa demonstrar, por evidência verificável:
+
+1. **Conta e direitos:** autorização do próprio usuário por fluxo permitido; estado de conta/serviços consultado sem copiar sessões privadas de outros aplicativos, sem armazenar senhas no repositório e sem presumir que plano pago é exigido para recursos gratuitos.
+2. **Dispositivo correto:** identificador estável no escopo da conta; seleção inequívoca entre pelo menos duas câmeras; erro distinto para câmera inexistente, conta sem acesso e rede indisponível.
+3. **Reprodução interna:** negociação do vídeo por interface/SDK autorizado; primeiro quadro da câmera física dentro do host; comportamento em perda de rede, retorno de segundo plano, expiração e encerramento.
+4. **Controle e nuvem:** somente operações realmente suportadas; demonstrar que gravação/serviços contratados permanecem operacionais quando aplicáveis, sem alteração de firmware nem associação da câmera.
+5. **Privacidade e segurança:** credenciais e URLs temporárias fora de logs/backup/telemetria; sem componentes publicitários de terceiros; TLS íntegro; sessão encerrada e recursos liberados quando apropriado.
+6. **Evidência de execução:** separar testes unitários e emulador, clipe/URL artificial, teste de stream autorizado e uso com câmera real. CI verde **não** satisfaz o item 3.
+
+## Caso de teste de aceitação — primeiro fabricante
+
+- Dois dispositivos diferentes **já vinculados** à mesma conta oficial; autenticação permitida.
+- Iniciar o Enterprise Cams sem aplicativo oficial em primeiro plano; abrir A e depois B; verificar no vídeo qual câmera está ativa, sem trocar silenciosamente de dispositivo.
+- Repetir com app frio, app em segundo plano e após revogação de acesso à conta.
+- Interromper/repor conectividade; verificar erro interpretável e encerramento limpo, sem impressão de token/URL em logs.
+- Comparar serviços de nuvem/gravadores contratados antes e depois, conforme recursos aplicáveis àquele fabricante.
+- Registrar versão da câmera e do APK, método/autorização de acesso, passos reproduzíveis e limitações. Não rodar testes reais automaticamente nem solicitar credenciais ao interlocutor.
+
+## Resultado desta rodada e continuidade
+
+Foi feita **triagem estática** das fontes públicas e dos PRs #2/#3 em 24/11/2026. **Não** houve implementação de conector autenticado, teste de hardware, reprodução de câmera nem validação do serviço do fabricante. A matriz identifica exatamente onde faltam contratos verificáveis e impede que um Intent, clipe simulado ou link avulso seja declarado integração concluída.
+
+**Próximo passo técnico:** investigar as interfaces de interoperabilidade **atuais** e condições de licença para um fabricante de cada vez, começando pelo mais documentado, sem alterar o produto antes de existir um contrato verificável. Se uma interface não estiver documentada, continuar engenharia própria da camada extensível, protocolos e testes, sem substituir o objetivo por um levantamento estático; alternar repositórios não significa abandonar Enterprise Cams. Manter PR #2 e PR #3 em rascunho e sem merge/release.
+
+## Atualização de fontes externas — 25/11/2026
+
+Triagem documental de interoperabilidade, NÃO integração executada nem homologação. Foram lidos README, metadados e informações de licença dos repositórios públicos abaixo. Não houve autenticação, câmera real, captura de tráfego, compilação ou cópia de implementação de terceiros.
+
+| Caminho candidato | Evidência e limites reais | Decisão para o Enterprise Cams |
+| --- | --- | --- |
+| iCSee/XM — [xmplayer](https://github.com/ddev-io/icsee-p2p-camera-client) | Cliente Python independente declara login pela conta iCSee/XM ou Cloud ID + credenciais da câmera, descoberta e vídeo ao vivo verificados em uma câmera-alvo no Windows. Os serviços do fabricante continuam envolvidos; compatibilidade geral, Android e execução neste projeto não foram testados. Metadados do GitHub não informam licença e não se viu arquivo LICENSE na árvore. README relata credenciais em texto simples em arquivos locais. | Pista funcional com potencial para preservar a nuvem iCSee, mas licença, autorização, API estável, compatibilidade de conta e armazenamento seguro precisam ser resolvidos ANTES de portar código. |
+| Yoosee/Gwell — [TianEye](https://github.com/andrewloable/TianEye) | Projeto MIT pausado em 07/10/2026, sem código executável, segundo README. Análise estática e uma câmera ensaiada: RTSP/ONVIF local em determinado firmware. Em IoTVideo mais recente, PTZ e reprodução SD nativa dependem de sessão P2P com token da nuvem. Proposta de bloquear a nuvem contradiz preservação de serviços contratados. | Referência de protocolo e impeditivos, não conector pronto. Não bloquear egress, desvincular câmera nem substituir o serviço Yoosee. |
+| Yoosee/Gwell — [GWP2PSDK](https://github.com/GWTimes/GWP2PSDK) | Biblioteca P2P com wrapper Objective-C para iOS, último push registrado em 2022; não há licença declarada nos metadados. | Não comprova integração Android contemporânea, autorização de redistribuição nem compatibilidade com IoTVideo atual; não incorporar binários ou exemplos. |
+| V380 — [protocolo e cliente de pesquisa](https://github.com/26medias/V380-wifi-camera-reverse-engineering) | Projeto MIT com cliente Node local para família/modelo AC54 e porta TCP 8800, MJPEG; documenta uma só sessão e fraquezas relevantes no protocolo estudado. Não é API da conta/nuvem V380 Pro e não há compatibilidade universal comprovada. | Possível complemento LAN por dispositivo somente com validação, sem substituir cloud, respeitando as fraquezas de segurança observadas. |
+| V380 — [V380-SDK](https://github.com/brusdev/V380-SDK) | Exemplo Java de SDK Macrovideo com histórico antigo (último push registrado em 2017); GitHub não informa licença. | Pista histórica, não incorporar bibliotecas nem presumir compatibilidade ou direitos de distribuição. |
+| Hilevel | Publicação do aplicativo com pacote com.sotaviz.hilevelen identificada, mas nenhum contrato público verificável de login + seleção de dispositivo + stream foi localizado nesta rodada. | Prioridade indispensável de engenharia: desenvolver e testar o conector e investigar seu mecanismo real de autenticação, em vez de exigir SDK pronto como pré-condição para evoluir o código. |
+
+### Decisão técnica após a triagem
+
+1. A implementação multimarcas tem como prioridades de uso **Yoosee e Hilevel**, sem limitar novas marcas. iCSee/XM é uma pista pública adicional de login, descoberta e vídeo real independente; a declaração dos autores ainda não foi reproduzida neste projeto.
+2. Antes de qualquer porte: confirmar licença/autorização, diferenças entre login da conta e senha da câmera, suporte a múltiplos dispositivos, tratamento seguro de credenciais e preservação de serviços oficiais. Ausência de licença explícita NÃO autoriza cópia de código.
+3. Manter alternativas LAN de Yoosee/V380 separadas da integração com nuvem, sem romper associação, assinaturas ou acesso externo.
+4. Implementar já a arquitetura própria de QR/descoberta aberta, registro de conectores, sessões e integração com player. Para cada fornecedor, usar seu fluxo de autenticação e obter dados de dispositivo pelos meios técnicos apropriados; validar com testes sintéticos e, no momento adequado, hardware físico. Não duplicar player simulado: PR #2 já contém protótipo de reprodução.
+5. Estado: integração funcional AINDA NÃO IMPLEMENTADA; pesquisa documental CONCLUÍDA PROVISORIAMENTE para estas pistas. Próxima ação: desenvolver a identificação extensível por QR e conectores próprios, priorizando Yoosee/Hilevel e evoluindo os demais. A autenticação permanece com os respectivos fabricantes; segurança por mitigação concreta de riscos.
+
