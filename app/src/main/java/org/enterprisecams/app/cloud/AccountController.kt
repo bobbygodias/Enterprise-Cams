@@ -14,10 +14,20 @@ sealed interface AccountResult {
     data class Connected(val cameras: List<RemoteCamera>) : AccountResult
 }
 
+sealed interface CameraSourceResult {
+    data object Unavailable : CameraSourceResult
+    data object SignedOut : CameraSourceResult
+    data object NotInAccount : CameraSourceResult
+    data object NotSupported : CameraSourceResult
+    data object Failed : CameraSourceResult
+    data class Ready(val source: VendorVideoSource) : CameraSourceResult
+}
+
 /** Account state lives only in process memory. Never expose the token to Compose. */
 class AccountController(connectors: List<VendorAccountConnector>) {
     private val drivers = connectors.associateBy { it.vendor }
     private val sessions = mutableMapOf<CloudVendor, VendorSession>()
+    private val inventoryIds = mutableMapOf<CloudVendor, Set<String>>()
     private val lock = Mutex()
 
     init { require(drivers.size == connectors.size) }
@@ -38,6 +48,7 @@ class AccountController(connectors: List<VendorAccountConnector>) {
         if (account.length !in 3..254 || '@' !in account || account.any { it.isWhitespace() || it.isISOControl() } ||
             password.isEmpty() || password.length > 1024) return@withLock AccountResult.InvalidCredentials
         sessions.remove(vendor)?.let { close(driver, it) }
+        inventoryIds.remove(vendor)
         var pending: VendorSession? = null
         try {
             val session = driver.signIn(account, password)
@@ -45,6 +56,7 @@ class AccountController(connectors: List<VendorAccountConnector>) {
             require(session.vendor == vendor)
             val cameras = inventory(driver, session)
             sessions[vendor] = session
+            inventoryIds[vendor] = cameras.map { it.id }.toSet()
             pending = null
             AccountResult.Connected(cameras)
         } catch (e: CancellationException) {
@@ -60,10 +72,13 @@ class AccountController(connectors: List<VendorAccountConnector>) {
         val driver = drivers[vendor] ?: return@withLock AccountResult.Unavailable
         val session = sessions[vendor] ?: return@withLock AccountResult.SignedOut
         try {
-            AccountResult.Connected(inventory(driver, session))
+            val cameras = inventory(driver, session)
+            inventoryIds[vendor] = cameras.map { it.id }.toSet()
+            AccountResult.Connected(cameras)
         } catch (e: CancellationException) { throw e }
         catch (_: Exception) {
             sessions.remove(vendor)
+            inventoryIds.remove(vendor)
             close(driver, session)
             AccountResult.Failed
         }
@@ -72,7 +87,20 @@ class AccountController(connectors: List<VendorAccountConnector>) {
     suspend fun signOut(vendor: CloudVendor): AccountResult = lock.withLock {
         val driver = drivers[vendor] ?: return@withLock AccountResult.Unavailable
         sessions.remove(vendor)?.let { close(driver, it) }
+        inventoryIds.remove(vendor)
         AccountResult.SignedOut
+    }
+
+    /** Refuse to fetch or play an ID that is not in the last authenticated device list. */
+    suspend fun openCamera(vendor: CloudVendor, cameraId: String): CameraSourceResult = lock.withLock {
+        val driver = drivers[vendor] ?: return@withLock CameraSourceResult.Unavailable
+        val session = sessions[vendor] ?: return@withLock CameraSourceResult.SignedOut
+        if (cameraId !in inventoryIds[vendor].orEmpty()) return@withLock CameraSourceResult.NotInAccount
+        try {
+            driver.liveSource(session, cameraId)?.let { CameraSourceResult.Ready(it) }
+                ?: CameraSourceResult.NotSupported
+        } catch (e: CancellationException) { throw e }
+        catch (_: Exception) { CameraSourceResult.Failed }
     }
 
     private suspend fun inventory(driver: VendorAccountConnector, session: VendorSession): List<RemoteCamera> {
